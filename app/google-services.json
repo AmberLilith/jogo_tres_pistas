@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "564147419671",
+    "firebase_url": "https://jogo-tres-pistas-default-rtdb.firebaseio.com",
+    "project_id": "jogo-tres-pistas",
+    "storage_bucket": "jogo-tres-pistas.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:564147419671:android:4c2321d99314323ad33a52",
+        "android_client_info": {
+          "package_name": "com.br.amber.jogodastrespistas"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "564147419671-a6tcpeat2su3ncrviep2pu6eoj9552ca.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.br.amber.jogodastrespistas",
+            "certificate_hash": "d2aedcce06b329f317ea28d3b222bd10e66af65b"
+          }
+        },
+        {
+          "client_id": "564147419671-r1j8v804p3sc1j5ofvj8srhhem51a29n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuYEj9r0OsXlVjP1bP0ZQLwgegAWYpgzc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "564147419671-r1j8v804p3sc1j5ofvj8srhhem51a29n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
