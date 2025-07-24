@@ -4,44 +4,28 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.br.amber.jogodastrespistas.ui.screens.home.HomeScreen
-import com.br.amber.jogodastrespistas.ui.screens.login.LoginScreen
+import com.br.amber.jogodastrespistas.navigation.AppNavHost
 import com.br.amber.jogodastrespistas.ui.theme.JogoDasTrêsPistasTheme
-import com.google.firebase.FirebaseApp
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.br.amber.jogodastrespistas.ui.screens.login.AuthViewModel
 
 class MainActivity : ComponentActivity() {
+    private val authViewModel by viewModels<AuthViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
-        FirebaseApp.initializeApp(this)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             JogoDasTrêsPistasTheme {
-                var isLoggedIn by remember { mutableStateOf(false) }
-
-                if (isLoggedIn) {
-                    // Aqui você renderizaria a tela principal do app após o login
-                    HomeScreen()
-                } else {
-                    LoginScreen(
-                        onLoginSuccess = {
-                            isLoggedIn = true
-                        }
-                    )
-                }
+                AppNavHost(authViewModel = authViewModel)
             }
         }
     }

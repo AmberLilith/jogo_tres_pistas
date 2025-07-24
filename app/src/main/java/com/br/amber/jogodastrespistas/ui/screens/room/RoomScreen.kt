@@ -1,4 +1,4 @@
-package com.br.amber.jogodastrespistas.ui.screens.home
+package com.br.amber.jogodastrespistas.ui.screens.room
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,25 +15,24 @@ import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.navigation.RoutesEnum
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun RoomScreen(navController: NavHostController) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
-    ){
-        Text(
-            text = "Bem-vindo ao Jogo das Três Pistas!",
-            modifier = Modifier.padding(16.dp)
-        )
+    ) {
+        Text(text = "Room!")
         Button(
             onClick = {
-                navController.navigate(RoutesEnum.ROOM.route)
+                navController.navigate(RoutesEnum.HOME.route)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Ir para RoomScreen")
+            Text("Ir para home")
         }
+
     }
 }

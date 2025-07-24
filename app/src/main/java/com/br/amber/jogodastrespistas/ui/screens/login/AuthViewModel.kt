@@ -6,14 +6,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.br.amber.jogodastrespistas.data.AuthRepository
 
-class AuthViewModel: ViewModel(){
+class AuthViewModel : ViewModel() {
     private val authRepository = AuthRepository()
 
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf<String?>(null)
-    var isLoggedIn by mutableStateOf(false)
 
-    fun loginWithGoogle(idToken: String){
+    // Já inicia com o estado de login atual
+    var isLoggedIn by mutableStateOf(authRepository.isUsserLoggedIn())
+        private set
+
+    fun loginWithGoogle(idToken: String) {
         isLoading = true
         errorMessage = null
         authRepository.firebaseAuthWithGoogle(idToken) { result ->
@@ -26,5 +29,5 @@ class AuthViewModel: ViewModel(){
         }
     }
 
-    fun isAlreadyLoggedIn(): Boolean = authRepository.isUsserLoggedIn()
+    fun isUserLoggedIn(): Boolean = authRepository.isUsserLoggedIn()
 }
