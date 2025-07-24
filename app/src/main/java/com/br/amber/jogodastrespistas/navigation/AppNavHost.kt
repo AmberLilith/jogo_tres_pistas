@@ -26,6 +26,10 @@ fun AppNavHost(
             LoginScreen(
                 onLoginSuccess = {
                     navController.navigate(RoutesEnum.HOME.route) {
+                        /*
+                        popUpTo navega para um novo destino e remove da pilha todos os destinos acima do que você indicar nele.
+                        Para evitar que o usuário volte para telas anteriores (como login).
+                        */
                         popUpTo(RoutesEnum.LOGIN.route) { inclusive = true }
                     }
                 }
