@@ -15,7 +15,9 @@ import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.navigation.RoutesEnum
 
 @Composable
-fun RoomScreen(navController: NavHostController) {
+fun RoomScreen(
+    navController: NavHostController,
+    roomId: String) {
 
     Column(
         modifier = Modifier
@@ -24,7 +26,7 @@ fun RoomScreen(navController: NavHostController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Room!")
+        Text(text = "Room $roomId!")
         Button(
             onClick = {
                 navController.navigate(RoutesEnum.HOME.route)
