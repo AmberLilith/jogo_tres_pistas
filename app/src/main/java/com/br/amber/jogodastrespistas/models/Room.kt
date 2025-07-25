@@ -1,6 +1,7 @@
 package com.br.amber.jogodastrespistas.models
 
 data class Room(
+    val id: String = "",
     val owner: Player = Player(),
     val guest: Player = Player(id = "guest", isOnline = false),
     var ownerTurn: Boolean = true,
@@ -9,6 +10,5 @@ data class Room(
     var round: Int = 0,
     val drawnWords: List<Word> = emptyList()
 ) {
-    constructor() : this(owner = Player())
-
+    constructor() : this(id = "", owner = Player())
 }

@@ -22,26 +22,27 @@ class RoomRepository {
         onError: (Exception) -> Unit
     ) {
         val ownerId = auth.currentUser?.uid
-        //TODO Tratar novo guest para que se for o mesmo do owner, acrescentar um sufixo para diferenciar
-        val ownerName = auth.currentUser?.displayName?.split(" ")[0] ?: "Anônimo_${Random.nextInt(100, 9999)}"
+        val ownerName = auth.currentUser?.displayName?.split(" ")?.get(0) ?: "Anônimo_${Random.nextInt(100, 9999)}"
         if (ownerId == null) {
             onError(Exception("Usuário não autenticado"))
             return
         }
         getRandomWords { words ->
+            val roomRef = roomsRef.push()
+            val roomId = roomRef.key ?: return@getRandomWords onError(Exception("Erro ao gerar ID"))
+
             val room = Room(
+                id = roomId,
                 owner = Player(id = ownerId, nickName = ownerName, isOnline = true),
                 drawnWords = words
             )
-
-            val roomRef = roomsRef.push()
-            val roomId = roomRef.key ?: return@getRandomWords onError(Exception("Erro ao gerar ID"))
 
             roomRef.setValue(room)
                 .addOnSuccessListener { onSuccess(roomId) }
                 .addOnFailureListener { onError(it) }
         }
     }
+
 
     private fun getRandomWords(limit: Int = 10, callback: (List<Word>) -> Unit) {
         wordsRef.get().addOnSuccessListener { snapshot ->
