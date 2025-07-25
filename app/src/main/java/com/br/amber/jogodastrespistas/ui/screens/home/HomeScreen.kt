@@ -1,5 +1,6 @@
 package com.br.amber.jogodastrespistas.ui.screens.home
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.navigation.RoutesEnum
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -35,9 +37,31 @@ fun HomeScreen(
 ) {
     val waitingRooms by viewModel.waitingRooms.collectAsState(initial = emptyList())
 
+    val roomId by viewModel.createdRoomId.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
+    val context = LocalContext.current
+
+
     // Inicia a escuta das salas esperando atualização
     LaunchedEffect(Unit) {
         viewModel.observeWaitingRooms()
+    }
+
+    LaunchedEffect(roomId) {
+        if (!roomId.isNullOrEmpty()) {
+            navController.navigate(RoutesEnum.roomWithId(roomId!!))
+            viewModel.clearRoomId()
+        }
+    }
+
+    LaunchedEffect(errorMessage) {
+        if (!errorMessage.isNullOrEmpty()) {
+            Toast
+                .makeText(context, errorMessage, Toast.LENGTH_SHORT)
+                .show()
+            viewModel.clearErrorMessage()
+        }
     }
 
     Column(

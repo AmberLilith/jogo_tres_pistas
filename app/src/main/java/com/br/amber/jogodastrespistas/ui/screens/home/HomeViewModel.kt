@@ -1,12 +1,10 @@
 package com.br.amber.jogodastrespistas.ui.screens.home
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.br.amber.jogodastrespistas.data.RoomRepository
 import com.br.amber.jogodastrespistas.models.Room
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 class HomeViewModel : ViewModel() {
 
@@ -20,8 +18,8 @@ class HomeViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    private val _roomId = MutableStateFlow<String?>(null)
-    val roomId: StateFlow<String?> = _roomId
+    private val _createdRoomId = MutableStateFlow<String?>(null)
+    val createdRoomId: StateFlow<String?> = _createdRoomId
 
     fun createRoom() {
         _isLoading.value = true
@@ -29,7 +27,7 @@ class HomeViewModel : ViewModel() {
 
         repository.createRoom(
             onSuccess = { id ->
-                _roomId.value = id
+                _createdRoomId.value = id
                 _isLoading.value = false
             },
             onError = { exception ->
@@ -45,4 +43,15 @@ class HomeViewModel : ViewModel() {
             onError = { error -> _errorMessage.value = error.message }
         )
     }
+
+    fun clearRoomId() {
+        _createdRoomId.value = null
+    }
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
+    }
+
+
+
 }
