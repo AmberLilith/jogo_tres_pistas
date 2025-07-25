@@ -8,7 +8,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 
 class RoomRepository {
@@ -28,7 +27,7 @@ class RoomRepository {
         }
         getRandomWords { words ->
             val room = Room(
-                owner = Player(id = ownerId, isOnline = true),  // Player criado aqui
+                owner = Player(id = ownerId, isOnline = true),
                 drawnWords = words
             )
 
@@ -56,7 +55,6 @@ class RoomRepository {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val rooms = snapshot.children.mapNotNull { roomSnapshot ->
                         roomSnapshot.getValue(Room::class.java)?.let { room ->
-                            // Atualiza o ID do owner com a chave do snapshot se necessário
                             if (room.owner.id.isEmpty()) {
                                 room.owner.id = roomSnapshot.key ?: ""
                             }
