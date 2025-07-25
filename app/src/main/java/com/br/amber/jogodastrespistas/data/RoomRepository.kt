@@ -9,6 +9,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import kotlin.random.Random
 
 class RoomRepository {
 
@@ -21,13 +22,15 @@ class RoomRepository {
         onError: (Exception) -> Unit
     ) {
         val ownerId = auth.currentUser?.uid
+        //TODO Tratar novo guest para que se for o mesmo do owner, acrescentar um sufixo para diferenciar
+        val ownerName = auth.currentUser?.displayName?.split(" ")[0] ?: "Anônimo_${Random.nextInt(100, 9999)}"
         if (ownerId == null) {
             onError(Exception("Usuário não autenticado"))
             return
         }
         getRandomWords { words ->
             val room = Room(
-                owner = Player(id = ownerId, isOnline = true),
+                owner = Player(id = ownerId, nickName = ownerName, isOnline = true),
                 drawnWords = words
             )
 

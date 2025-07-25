@@ -1,12 +1,23 @@
 package com.br.amber.jogodastrespistas.ui.screens.home
 
+import android.R.attr.text
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -19,9 +30,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.br.amber.jogodastrespistas.models.Room
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController,
@@ -38,12 +51,20 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Bem-vindo ao Jogo das Três Pistas!",
-            modifier = Modifier.padding(16.dp)
+
+        CenterAlignedTopAppBar(
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.primary,
+            ),
+            title = {
+                Text(
+                    text = "Bem-vindo ao Jogo das Três Pistas!"
+                )
+            }
         )
 
         Button(
@@ -53,8 +74,46 @@ fun HomeScreen(
             Text("Criar Sala")
         }
 
-        waitingRooms.forEach { room ->
-            Text(text = "Sala de ${room.owner.id} - Status: ${room.status}")
+        Spacer(modifier = Modifier.padding(8.dp))
+
+        waitingRooms.forEachIndexed { index, room ->
+            Card {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Sala ${index + 1}",
+                        fontSize = 18.sp,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally))
+
+                    HorizontalDivider(thickness = 2.dp)
+
+                    Text(
+                        text = "${room.owner.nickName} aguardando adversário!"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.End)
+                    ) {
+                        Button(
+                            onClick = {
+                                navController.navigate(RoutesEnum.ROOM.route)
+                            }
+                        ) {
+                            Text(
+                                text = "Entrar"
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
         }
     }
 }
+
