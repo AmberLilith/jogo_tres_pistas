@@ -1,14 +1,14 @@
 package com.br.amber.jogodastrespistas.ui.screens.home
 
 import androidx.lifecycle.ViewModel
-import com.br.amber.jogodastrespistas.data.RoomRepository
+import com.br.amber.jogodastrespistas.data.HomeRepository
 import com.br.amber.jogodastrespistas.models.Room
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class HomeViewModel : ViewModel() {
 
-    private val repository = RoomRepository()
+    private val repository = HomeRepository()
     private val _waitingRooms = MutableStateFlow<List<Room>>(emptyList())
     val waitingRooms: StateFlow<List<Room>> = _waitingRooms
 

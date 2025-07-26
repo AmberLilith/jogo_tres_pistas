@@ -1,79 +1,64 @@
 package com.br.amber.jogodastrespistas.data
 
-import com.br.amber.jogodastrespistas.models.Player
 import com.br.amber.jogodastrespistas.models.Room
-import com.br.amber.jogodastrespistas.models.RoomStatusesEnum
-import com.br.amber.jogodastrespistas.models.Word
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import kotlin.random.Random
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 class RoomRepository {
+    private val database = FirebaseDatabase.getInstance()
+    private val roomsRef = database.getReference("rooms")
 
-    private val roomsRef = FirebaseDatabase.getInstance().getReference("rooms")
-    private val wordsRef = FirebaseDatabase.getInstance().getReference("words")
-    private val auth = FirebaseAuth.getInstance()
+    fun getRoomUpdates(roomId: String): Flow<Room> = callbackFlow {
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val room = snapshot.getValue(Room::class.java)?.copy(id = roomId)
+                room?.let { trySend(it) }
+            }
 
-    fun createRoom(
-        onSuccess: (String) -> Unit,
-        onError: (Exception) -> Unit
-    ) {
-        val ownerId = auth.currentUser?.uid
-        val ownerName = auth.currentUser?.displayName?.split(" ")?.get(0) ?: "Anônimo_${Random.nextInt(100, 9999)}"
-        if (ownerId == null) {
-            onError(Exception("Usuário não autenticado"))
-            return
+            override fun onCancelled(error: DatabaseError) {
+                close(error.toException())
+            }
         }
-        getRandomWords { words ->
-            val roomRef = roomsRef.push()
-            val roomId = roomRef.key ?: return@getRandomWords onError(Exception("Erro ao gerar ID"))
 
-            val room = Room(
-                id = roomId,
-                owner = Player(id = ownerId, nickName = ownerName, isOnline = true),
-                drawnWords = words
-            )
+        roomsRef.child(roomId).addValueEventListener(listener)
 
-            roomRef.setValue(room)
-                .addOnSuccessListener { onSuccess(roomId) }
-                .addOnFailureListener { onError(it) }
+        awaitClose {
+            roomsRef.child(roomId).removeEventListener(listener)
         }
     }
 
-
-    private fun getRandomWords(limit: Int = 10, callback: (List<Word>) -> Unit) {
-        wordsRef.get().addOnSuccessListener { snapshot ->
-            val wordList = snapshot.children.mapNotNull {
-                it.getValue(Word::class.java)
-            }.shuffled().take(limit)
-            callback(wordList)
-        }
+    suspend fun updateRoom(room: Room) {
+        roomsRef.child(room.id).setValue(room)
     }
 
-    fun listenWaitingRooms(onUpdate: (List<Room>) -> Unit, onError: (Exception) -> Unit) {
-        roomsRef.orderByChild("status").equalTo(RoomStatusesEnum.WAITING.status)
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val rooms = snapshot.children.mapNotNull { roomSnapshot ->
-                        roomSnapshot.getValue(Room::class.java)?.let { room ->
-                            if (room.owner.id.isEmpty()) {
-                                room.owner.id = roomSnapshot.key ?: ""
-                            }
-                            room
-                        }
-                    }
-                    onUpdate(rooms)
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    onError(error.toException())
-                }
-            })
+    fun updatePoints(roomId: String, isOwner: Boolean, points: Int) {
+        val path = if (isOwner) "owner/points" else "guest/points"
+        roomsRef.child(roomId).child(path).setValue(points)
     }
 
+    fun updateTurn(roomId: String, isOwnerTurn: Boolean) {
+        roomsRef.child(roomId).child("ownerTurn").setValue(isOwnerTurn)
+    }
 
+    fun updateStatus(roomId: String, status: String) {
+        roomsRef.child(roomId).child("status").setValue(status)
+    }
+
+    fun updateCluesShown(roomId: String, count: Int) {
+        roomsRef.child(roomId).child("cluesShown").setValue(count)
+    }
+
+    fun updateRound(roomId: String, round: Int) {
+        roomsRef.child(roomId).child("round").setValue(round)
+    }
+
+    fun updatePlayerOnlineStatus(roomId: String, isOwner: Boolean, isOnline: Boolean) {
+        val path = if (isOwner) "owner/isOnline" else "guest/isOnline"
+        roomsRef.child(roomId).child(path).setValue(isOnline)
+    }
 }
-
