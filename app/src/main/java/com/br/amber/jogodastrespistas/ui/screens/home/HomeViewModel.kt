@@ -52,6 +52,23 @@ class HomeViewModel : ViewModel() {
         _errorMessage.value = null
     }
 
+    fun joinRoomAsGuest(
+        roomId: String,
+        callback: Unit
+    ) {
+        repository.joinRoomAsGuest(
+            roomId = roomId,
+            onSuccess = {
+                callback
+            },
+            onError = { error ->
+                // Mostrar mensagem de erro
+                println("Erro ao entrar na sala: ${error.message}")
+            }
+        )
+    }
+
+
 
 
 }

@@ -16,14 +16,14 @@ class HomeRepository {
     private val roomsRef = FirebaseDatabase.getInstance().getReference("rooms")
     private val wordsRef = FirebaseDatabase.getInstance().getReference("words")
     private val auth = FirebaseAuth.getInstance()
+    val loggedUserId = auth.currentUser?.uid
+    val loggedUserName = auth.currentUser?.displayName?.split(" ")?.get(0) ?: "Anônimo_${Random.nextInt(100, 9999)}"
 
     fun createRoom(
         onSuccess: (String) -> Unit,
         onError: (Exception) -> Unit
     ) {
-        val ownerId = auth.currentUser?.uid
-        val ownerName = auth.currentUser?.displayName?.split(" ")?.get(0) ?: "Anônimo_${Random.nextInt(100, 9999)}"
-        if (ownerId == null) {
+        if (loggedUserId == null) {
             onError(Exception("Usuário não autenticado"))
             return
         }
@@ -33,7 +33,7 @@ class HomeRepository {
 
             val room = Room(
                 id = roomId,
-                owner = Player(id = ownerId, nickName = ownerName, isOnline = true),
+                owner = Player(id = loggedUserId, nickName = loggedUserName, online = true),
                 drawnWords = words
             )
 
@@ -72,6 +72,27 @@ class HomeRepository {
                     onError(error.toException())
                 }
             })
+    }
+
+    fun joinRoomAsGuest(
+        roomId: String,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        val updates = hashMapOf<String, Any>(
+            "guest/nickName" to loggedUserName,
+            "guest/online" to true
+        )
+
+        roomsRef.child(roomId)
+            .updateChildren(updates)
+            .addOnSuccessListener {
+                println("Sucesso: Convidado $loggedUserName entrou na sala $roomId")
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onError(e)
+            }
     }
 
 

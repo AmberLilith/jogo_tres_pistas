@@ -37,7 +37,7 @@ fun HomeScreen(
 ) {
     val waitingRooms by viewModel.waitingRooms.collectAsState(initial = emptyList())
 
-    val roomId by viewModel.createdRoomId.collectAsState()
+    val createdRoomId by viewModel.createdRoomId.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
     val context = LocalContext.current
@@ -48,9 +48,9 @@ fun HomeScreen(
         viewModel.observeWaitingRooms()
     }
 
-    LaunchedEffect(roomId) {
-        if (!roomId.isNullOrEmpty()) {
-            navController.navigate(RoutesEnum.roomWithId(roomId!!))
+    LaunchedEffect(createdRoomId) {
+        if (!createdRoomId.isNullOrEmpty()) {
+            navController.navigate(RoutesEnum.roomWithId(createdRoomId!!))
             viewModel.clearRoomId()
         }
     }
@@ -117,7 +117,10 @@ fun HomeScreen(
                     ) {
                         Button(
                             onClick = {
-                                navController.navigate(RoutesEnum.roomWithId(room.id))
+                                viewModel.joinRoomAsGuest(// Só navega para a tela da sala quando os dados de guest forem atualizados
+                                    room.id,
+                                    navController.navigate(RoutesEnum.roomWithId(room.id))
+                                )
                             }
                         ) {
                             Text(

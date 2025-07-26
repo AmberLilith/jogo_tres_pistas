@@ -57,8 +57,8 @@ class RoomRepository {
         roomsRef.child(roomId).child("round").setValue(round)
     }
 
-    fun updatePlayerOnlineStatus(roomId: String, isOwner: Boolean, isOnline: Boolean) {
-        val path = if (isOwner) "owner/isOnline" else "guest/isOnline"
-        roomsRef.child(roomId).child(path).setValue(isOnline)
+    fun updatePlayerOnlineStatus(roomId: String, isOwner: Boolean, online: Boolean) {
+        val path = if (isOwner) "owner/online" else "guest/online"
+        roomsRef.child(roomId).child(path).setValue(online)
     }
 }

@@ -3,7 +3,7 @@ package com.br.amber.jogodastrespistas.models
 data class Room(
     val id: String = "",
     val owner: Player = Player(),
-    val guest: Player = Player(id = "guest", isOnline = false),
+    val guest: Player = Player(id = "guest", online = false),
     var ownerTurn: Boolean = true,
     var status: String = RoomStatusesEnum.WAITING.status,
     var cluesShown: Int = 0,
