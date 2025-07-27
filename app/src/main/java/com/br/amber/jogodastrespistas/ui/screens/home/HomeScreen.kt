@@ -36,30 +36,25 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel()
 ) {
     val waitingRooms by viewModel.waitingRooms.collectAsState(initial = emptyList())
-
     val createdRoomId by viewModel.createdRoomId.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-
     val context = LocalContext.current
 
-
-    // Inicia a escuta das salas esperando atualização
+    // Efeitos colaterais
     LaunchedEffect(Unit) {
         viewModel.observeWaitingRooms()
     }
 
     LaunchedEffect(createdRoomId) {
-        if (!createdRoomId.isNullOrEmpty()) {
-            navController.navigate(RoutesEnum.roomWithId(createdRoomId!!))
+        createdRoomId?.let { roomId ->
+            navController.navigate(RoutesEnum.roomWithId(roomId))
             viewModel.clearRoomId()
         }
     }
 
     LaunchedEffect(errorMessage) {
-        if (!errorMessage.isNullOrEmpty()) {
-            Toast
-                .makeText(context, errorMessage, Toast.LENGTH_SHORT)
-                .show()
+        errorMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             viewModel.clearErrorMessage()
         }
     }
@@ -136,4 +131,3 @@ fun HomeScreen(
         }
     }
 }
-
