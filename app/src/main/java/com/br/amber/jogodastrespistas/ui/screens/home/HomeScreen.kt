@@ -14,6 +14,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -36,98 +37,108 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel()
 ) {
     val waitingRooms by viewModel.waitingRooms.collectAsState(initial = emptyList())
+
     val createdRoomId by viewModel.createdRoomId.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+
     val context = LocalContext.current
 
-    // Efeitos colaterais
+
+    // Inicia a escuta das salas esperando atualização
     LaunchedEffect(Unit) {
         viewModel.observeWaitingRooms()
     }
 
     LaunchedEffect(createdRoomId) {
-        createdRoomId?.let { roomId ->
-            navController.navigate(RoutesEnum.roomWithId(roomId))
+        if (!createdRoomId.isNullOrEmpty()) {
+            navController.navigate(RoutesEnum.roomWithId(createdRoomId!!))
             viewModel.clearRoomId()
         }
     }
 
     LaunchedEffect(errorMessage) {
-        errorMessage?.let { message ->
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        if (!errorMessage.isNullOrEmpty()) {
+            Toast
+                .makeText(context, errorMessage, Toast.LENGTH_SHORT)
+                .show()
             viewModel.clearErrorMessage()
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
+                title = {
+                    Text("Bem-vindo ao Jogo das Três Pistas!")
+                }
+            )
+        },
+        content = { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
-        CenterAlignedTopAppBar(
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                titleContentColor = MaterialTheme.colorScheme.primary,
-            ),
-            title = {
-                Text(
-                    text = "Bem-vindo ao Jogo das Três Pistas!"
-                )
-            }
-        )
 
-        Button(
-            onClick = { viewModel.createRoom() },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Criar Sala")
-        }
-
-        Spacer(modifier = Modifier.padding(8.dp))
-
-        waitingRooms.forEachIndexed { index, room ->
-            Card {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
+                Button(
+                    onClick = { viewModel.createRoom() },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = "Sala ${index + 1}",
-                        fontSize = 18.sp,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally))
+                    Text("Criar Sala")
+                }
 
-                    HorizontalDivider(thickness = 2.dp)
+                Spacer(modifier = Modifier.padding(8.dp))
 
-                    Text(
-                        text = "${room.owner.nickName} aguardando adversário!"
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.End)
-                    ) {
-                        Button(
-                            onClick = {
-                                viewModel.joinRoomAsGuest(// Só navega para a tela da sala quando os dados de guest forem atualizados
-                                    room.id,
-                                    navController.navigate(RoutesEnum.roomWithId(room.id))
-                                )
-                            }
+                waitingRooms.forEachIndexed { index, room ->
+                    Card {
+                        Column(
+                            modifier = Modifier
+                                .padding(16.dp)
                         ) {
                             Text(
-                                text = "Entrar"
+                                text = "Sala ${index + 1}",
+                                fontSize = 18.sp,
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
                             )
+
+                            HorizontalDivider(thickness = 2.dp)
+
+                            Text(
+                                text = "${room.owner.nickName} aguardando adversário!"
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.End)
+                            ) {
+                                Button(
+                                    onClick = {
+                                        viewModel.joinRoomAsGuest(// Só navega para a tela da sala quando os dados de guest forem atualizados
+                                            room.id,
+                                            navController.navigate(RoutesEnum.roomWithId(room.id))
+                                        )
+                                    }
+                                ) {
+                                    Text(
+                                        text = "Entrar"
+                                    )
+                                }
+                            }
                         }
                     }
+
+                    Spacer(modifier = Modifier.padding(8.dp))
+
                 }
             }
-
-            Spacer(modifier = Modifier.padding(8.dp))
-
-        }
-    }
+        })
 }
