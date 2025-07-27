@@ -76,70 +76,70 @@ fun HomeScreen(
                     Text("Bem-vindo ao Jogo das Três Pistas!")
                 }
             )
-        },
-        content = { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
+        }
+    ){ innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+
+            Button(
+                onClick = { viewModel.createRoom() },
+                modifier = Modifier.fillMaxWidth()
             ) {
+                Text("Criar Sala")
+            }
 
+            Spacer(modifier = Modifier.padding(8.dp))
 
-                Button(
-                    onClick = { viewModel.createRoom() },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Criar Sala")
+            waitingRooms.forEachIndexed { index, room ->
+                Card {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Sala ${index + 1}",
+                            fontSize = 18.sp,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                        )
+
+                        HorizontalDivider(thickness = 2.dp)
+
+                        Text(
+                            text = "${room.owner.nickName} aguardando adversário!"
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.End)
+                        ) {
+                            Button(
+                                onClick = {
+                                    viewModel.joinRoomAsGuest(// Só navega para a tela da sala quando os dados de guest forem atualizados
+                                        room.id,
+                                        navController.navigate(RoutesEnum.roomWithId(room.id))
+                                    )
+                                }
+                            ) {
+                                Text(
+                                    text = "Entrar"
+                                )
+                            }
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.padding(8.dp))
 
-                waitingRooms.forEachIndexed { index, room ->
-                    Card {
-                        Column(
-                            modifier = Modifier
-                                .padding(16.dp)
-                        ) {
-                            Text(
-                                text = "Sala ${index + 1}",
-                                fontSize = 18.sp,
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally)
-                            )
-
-                            HorizontalDivider(thickness = 2.dp)
-
-                            Text(
-                                text = "${room.owner.nickName} aguardando adversário!"
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.End)
-                            ) {
-                                Button(
-                                    onClick = {
-                                        viewModel.joinRoomAsGuest(// Só navega para a tela da sala quando os dados de guest forem atualizados
-                                            room.id,
-                                            navController.navigate(RoutesEnum.roomWithId(room.id))
-                                        )
-                                    }
-                                ) {
-                                    Text(
-                                        text = "Entrar"
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.padding(8.dp))
-
-                }
             }
-        })
+        }
+    }
 }
 

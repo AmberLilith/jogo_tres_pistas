@@ -6,7 +6,7 @@ data class Room(
     val guest: Player = Player(id = "guest", online = false),
     var ownerTurn: Boolean = true,
     var status: String = RoomStatusesEnum.WAITING.status,
-    var cluesShown: Int = 0,
+    var cluesShown: Int = 1,
     var round: Int = 0,
     val drawnWords: List<Word> = emptyList()
 ) {
