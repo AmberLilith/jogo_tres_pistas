@@ -1,5 +1,6 @@
 package com.br.amber.jogodastrespistas.data
 
+import android.util.Log
 import com.br.amber.jogodastrespistas.models.Room
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -38,11 +39,21 @@ class RoomRepository {
 
     fun updatePoints(roomId: String, isOwner: Boolean, points: Int) {
         val path = if (isOwner) "owner/points" else "guest/points"
-        roomsRef.child(roomId).child(path).setValue(points)
+        val pointsRef = roomsRef.child(roomId).child(path)
+
+        pointsRef.get().addOnSuccessListener { snapshot ->
+            val currentPoints = snapshot.getValue(Int::class.java) ?: 0
+
+            val newPoints = currentPoints + points
+
+            pointsRef.setValue(newPoints)
+        }.addOnFailureListener { error ->
+            Log.e("Firebase", "Erro ao ler pontos: ${error.message}")
+        }
     }
 
     fun updateTurn(roomId: String, isOwnerTurn: Boolean) {
-        roomsRef.child(roomId).child("ownerTurn").setValue(isOwnerTurn)
+        roomsRef.child(roomId).child("ownerTurn").setValue(!isOwnerTurn)
     }
 
     fun updateStatus(roomId: String, status: String) {

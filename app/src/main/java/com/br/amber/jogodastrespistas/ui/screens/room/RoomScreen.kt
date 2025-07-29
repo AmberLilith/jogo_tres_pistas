@@ -30,6 +30,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.data.RoomRepository
+import com.br.amber.jogodastrespistas.enums.ScoreEnum
 import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.models.RoomStatusesEnum
 import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
@@ -65,7 +66,7 @@ fun RoomScreen(
                 ),
                 title = {
                     Text(
-                        text = "Sala ${room?.id ?: ""}",
+                        text = "JOGO DAS 3 PISTAS",
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
@@ -98,7 +99,7 @@ fun RoomScreen(
                         }
 
                         if (safeRoom.status == RoomStatusesEnum.PLAYING.status) {
-                            Text("Round: ${safeRoom.round}", style = MaterialTheme.typography.bodyLarge)
+                            Text("Round: ${safeRoom.round + 1}", style = MaterialTheme.typography.bodyLarge)
                             Text(
                                 "Vez de: ${if (safeRoom.ownerTurn) safeRoom.owner.nickName else safeRoom.guest.nickName}",
                                 style = MaterialTheme.typography.bodyLarge
@@ -122,7 +123,7 @@ fun RoomScreen(
 
                             Spacer(modifier = Modifier.padding(8.dp))
 
-                            Tips(safeRoom)
+                            Clues(safeRoom, viewModel)
                         }
                     }
                 }
@@ -132,7 +133,7 @@ fun RoomScreen(
 }
 
 @Composable
-fun Tips(room: Room) {
+fun Clues(room: Room, viewModel: RoomViewModel) {
     var textInput by remember { mutableStateOf("") }
 
     Column(
@@ -143,40 +144,47 @@ fun Tips(room: Room) {
     ) {
 
         Text(
-            text = "10 pts - ${room.drawnWords[room.round].clues[0]}",
+            text = "${ScoreEnum.HIGHER.points} pts - ${room.drawnWords[room.round].clues[0]}",
             modifier = Modifier.align(Alignment.Start)
         )
 
 
-        if(room.cluesShown > 1){
+        if(room.cluesShown > 0){
             Text(
-                text = "9 pts - ${room.drawnWords[room.round].clues[1]}",
+                text = "${ScoreEnum.MEDIAN.points} pts - ${room.drawnWords[room.round].clues[1]}",
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }
 
 
-        if(room.cluesShown > 2){
+        if(room.cluesShown > 1){
             Text(
-                text = "8 pts - ${room.drawnWords[room.round].clues[2]}",
+                text = "${ScoreEnum.LOWER.points} pts - ${room.drawnWords[room.round].clues[2]}",
                 modifier = Modifier.align(Alignment.End)
             )
         }
 
-        // Campo de entrada (TextField)
-        TextField(
-            value = textInput,
-            onValueChange = { textInput = it },
-            label = { Text("Digite algo") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        if(
+            (viewModel.loggedUserId == room.owner.id && room.ownerTurn) ||
+            (viewModel.loggedUserId == room.guest.id && !room.ownerTurn)
+        ){
 
-        // Botão
-        Button(
-            onClick = { /* Ação do botão */ },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Enviar")
+            TextField(
+                value = textInput,
+                onValueChange = { textInput = it },
+                label = { Text("Digite algo") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Botão
+            Button(
+                onClick = { viewModel.verifyAswer(textInput.toString(), room) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Enviar")
+            }
+
         }
+
     }
 }

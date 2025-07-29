@@ -24,7 +24,7 @@ class HomeRepository {
         onError: (Exception) -> Unit
     ) {
         if (loggedUserId == null) {
-            onError(Exception("Usuário não autenticado"))
+            onError(Exception("Usuário não autenticado")) //TODO redirecionar para tela de login
             return
         }
         getRandomWords { words ->
@@ -44,7 +44,7 @@ class HomeRepository {
     }
 
 
-    private fun getRandomWords(limit: Int = 10, callback: (List<Word>) -> Unit) {
+    private fun getRandomWords(limit: Int = Room.NUMBER_OF_ROUNDS, callback: (List<Word>) -> Unit) {
         wordsRef.get().addOnSuccessListener { snapshot ->
             val wordList = snapshot.children.mapNotNull {
                 it.getValue(Word::class.java)
@@ -81,6 +81,7 @@ class HomeRepository {
     ) {
         val updates = hashMapOf<String, Any>(
             "status" to RoomStatusesEnum.PLAYING.status,
+            "guest/id" to loggedUserId.toString(),
             "guest/nickName" to loggedUserName,
             "guest/online" to true
         )
