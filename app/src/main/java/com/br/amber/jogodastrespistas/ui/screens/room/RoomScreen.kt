@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -125,6 +126,13 @@ fun RoomScreen(
 
                             Clues(safeRoom, viewModel)
                         }
+                        if(safeRoom.status == RoomStatusesEnum.FINISHED.status){
+                            SimpleGameOverDialog(
+                                safeRoom,
+                                onRestart = { /*viewModel.restartGame()*/ },
+                                onExit = { navController.popBackStack() }
+                            )
+                        }
                     }
                 }
             }
@@ -187,4 +195,34 @@ fun Clues(room: Room, viewModel: RoomViewModel) {
         }
 
     }
+}
+
+@Composable
+fun SimpleGameOverDialog(room: Room, onRestart: () -> Unit, onExit: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = { /* não permite fechar clicando fora */ },
+        title = {
+            Text("Fim de Jogo!", style = MaterialTheme.typography.headlineSmall)
+        },
+        text = {
+            Column {
+                Text(
+                    text = "O jogo terminou! ${if(room.owner.points > room.guest.points) room.owner.nickName else room.guest.nickName} venceu!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text("Deseja jogar novamente?")
+            }
+        },
+        confirmButton = {
+            Button(onClick = onRestart) {
+                Text("Nova Partida")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onExit) {
+                Text("Sair")
+            }
+        }
+    )
 }

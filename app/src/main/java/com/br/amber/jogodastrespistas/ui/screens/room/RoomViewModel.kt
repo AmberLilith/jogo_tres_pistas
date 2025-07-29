@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.br.amber.jogodastrespistas.data.RoomRepository
 import com.br.amber.jogodastrespistas.enums.ScoreEnum
 import com.br.amber.jogodastrespistas.models.Room
+import com.br.amber.jogodastrespistas.models.RoomStatusesEnum
 import com.br.amber.jogodastrespistas.normalize
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -104,18 +105,28 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
         val indexScore: Int = room.cluesShown
         val isOwner: Boolean = room.owner.id == loggedUserId
         val isOwnerTurn: Boolean = room.ownerTurn
-        val currentRound: Int = room.round
+        val nextRound: Int = room.round + 1
 
         if(isAnswerCorrect(wordToVerify, answer)){
             addPoints(isOwner, indexScore)
-            startNewRound(isOwnerTurn)
-        }else{
-            if(room.cluesShown < 2){
-               changeTurn(isOwnerTurn)
-               updateCluesShown(room.cluesShown + 1)
+            if(nextRound == Room.NUMBER_OF_ROUNDS){
+                updateStatus(RoomStatusesEnum.FINISHED.status)
             }else{
                 startNewRound(isOwnerTurn)
             }
+
+        }else{
+                if(room.cluesShown < 2){
+                    changeTurn(isOwnerTurn)
+                    updateCluesShown(room.cluesShown + 1)
+                }else{
+                    if(nextRound == Room.NUMBER_OF_ROUNDS){
+                        updateStatus(RoomStatusesEnum.FINISHED.status)
+                    }else{
+                        startNewRound(isOwnerTurn)
+                    }
+                }
+
         }
     }
 

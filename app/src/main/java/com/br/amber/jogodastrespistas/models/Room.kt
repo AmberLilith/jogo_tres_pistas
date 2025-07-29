@@ -13,6 +13,6 @@ data class Room(
     constructor() : this(id = "", owner = Player())
 
     companion object{
-        const val NUMBER_OF_ROUNDS = 10
+        const val NUMBER_OF_ROUNDS = 2
     }
 }
