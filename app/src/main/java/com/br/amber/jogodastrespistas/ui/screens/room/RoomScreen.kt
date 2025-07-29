@@ -43,7 +43,7 @@ fun RoomScreen(
     roomId: String
 ) {
     val repository = remember { RoomRepository() }
-    val viewModel: RoomViewModel = viewModel(
+    val roomViewModel: RoomViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
@@ -53,10 +53,10 @@ fun RoomScreen(
     )
 
     LaunchedEffect(roomId) {
-        viewModel.init(roomId)
+        roomViewModel.init(roomId)
     }
 
-    val room by viewModel.roomState.collectAsState()
+    val room by roomViewModel.roomState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -124,11 +124,12 @@ fun RoomScreen(
 
                             Spacer(modifier = Modifier.padding(8.dp))
 
-                            Clues(safeRoom, viewModel)
+                            Clues(safeRoom, roomViewModel)
                         }
                         if(safeRoom.status == RoomStatusesEnum.FINISHED.status){
                             SimpleGameOverDialog(
                                 safeRoom,
+                                roomViewModel,
                                 onRestart = { /*viewModel.restartGame()*/ },
                                 onExit = { navController.popBackStack() }
                             )
@@ -141,7 +142,7 @@ fun RoomScreen(
 }
 
 @Composable
-fun Clues(room: Room, viewModel: RoomViewModel) {
+fun Clues(room: Room, roomViewModel: RoomViewModel) {
     var textInput by remember { mutableStateOf("") }
 
     Column(
@@ -173,8 +174,8 @@ fun Clues(room: Room, viewModel: RoomViewModel) {
         }
 
         if(
-            (viewModel.loggedUserId == room.owner.id && room.ownerTurn) ||
-            (viewModel.loggedUserId == room.guest.id && !room.ownerTurn)
+            (roomViewModel.loggedUserId == room.owner.id && room.ownerTurn) ||
+            (roomViewModel.loggedUserId == room.guest.id && !room.ownerTurn)
         ){
 
             TextField(
@@ -186,7 +187,7 @@ fun Clues(room: Room, viewModel: RoomViewModel) {
 
             // Botão
             Button(
-                onClick = { viewModel.verifyAswer(textInput.toString(), room) },
+                onClick = { roomViewModel.verifyAswer(textInput.toString(), room) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Enviar")
@@ -198,7 +199,12 @@ fun Clues(room: Room, viewModel: RoomViewModel) {
 }
 
 @Composable
-fun SimpleGameOverDialog(room: Room, onRestart: () -> Unit, onExit: () -> Unit) {
+fun SimpleGameOverDialog(room: Room, roomViewModel: RoomViewModel, onRestart: () -> Unit, onExit: () -> Unit) {
+    val winner = when {
+        room.owner.points > room.guest.points -> if(roomViewModel.loggedUserId == room.owner.id) "Você venceu!" else "${room.owner.nickName} venceu!"
+        room.guest.points > room.owner.points -> if(roomViewModel.loggedUserId == room.guest.id) "Você venceu!" else "${room.guest.nickName} venceu!"
+        else -> "Jogo empatado!"
+    }
     AlertDialog(
         onDismissRequest = { /* não permite fechar clicando fora */ },
         title = {
@@ -207,9 +213,14 @@ fun SimpleGameOverDialog(room: Room, onRestart: () -> Unit, onExit: () -> Unit) 
         text = {
             Column {
                 Text(
-                    text = "O jogo terminou! ${if(room.owner.points > room.guest.points) room.owner.nickName else room.guest.nickName} venceu!",
+                    text = "O jogo terminou! $winner",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = "${room.owner.nickName}: ${room.owner.points} pts X ${room.guest.nickName}: ${room.guest.points} pts",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
                 Text("Deseja jogar novamente?")
             }
