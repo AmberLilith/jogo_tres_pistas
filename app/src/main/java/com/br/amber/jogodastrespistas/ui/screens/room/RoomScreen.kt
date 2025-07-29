@@ -127,11 +127,14 @@ fun RoomScreen(
                             Clues(safeRoom, roomViewModel)
                         }
                         if(safeRoom.status == RoomStatusesEnum.FINISHED.status){
+                            val isLoggedUserOwner = safeRoom.owner.id == roomViewModel.loggedUserId
                             SimpleGameOverDialog(
                                 safeRoom,
                                 roomViewModel,
                                 onRestart = { /*viewModel.restartGame()*/ },
-                                onExit = { navController.popBackStack() }
+                                onExit = {
+                                    roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false)
+                                    navController.popBackStack() }
                             )
                         }
                     }
@@ -205,6 +208,7 @@ fun SimpleGameOverDialog(room: Room, roomViewModel: RoomViewModel, onRestart: ()
         room.guest.points > room.owner.points -> if(roomViewModel.loggedUserId == room.guest.id) "Você venceu!" else "${room.guest.nickName} venceu!"
         else -> "Jogo empatado!"
     }
+    val bothPlayersAreOnline = room.owner.online && room.guest.online
     AlertDialog(
         onDismissRequest = { /* não permite fechar clicando fora */ },
         title = {
@@ -222,17 +226,28 @@ fun SimpleGameOverDialog(room: Room, roomViewModel: RoomViewModel, onRestart: ()
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
-                Text("Deseja jogar novamente?")
+
+                    Text(
+                        text = if(bothPlayersAreOnline) "Deseja jogar novamente?"  else "Não é possível jogar novamente, pois seu adversário saiu do jogo!",
+                        color = if(bothPlayersAreOnline) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
+                    )
+
             }
         },
         confirmButton = {
-            Button(onClick = onRestart) {
+            Button(
+                onClick = onRestart,
+                enabled = bothPlayersAreOnline
+            ) {
                 Text("Nova Partida")
             }
         },
         dismissButton = {
-            Button(onClick = onExit) {
+            Button(
+                onClick = onExit
+            ) {
                 Text("Sair")
+
             }
         }
     )
