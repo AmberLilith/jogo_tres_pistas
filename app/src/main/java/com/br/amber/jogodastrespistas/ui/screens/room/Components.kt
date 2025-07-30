@@ -27,15 +27,14 @@ import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.models.RoomStatusesEnum
 import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
 
-@Composable
+@Composable //TODO não está sendo usada porque ao ser passada com content para DefaultScaffold, seu código não está sendo executado
 fun RoomContent(room: Room?, innerPadding: PaddingValues, navController: NavHostController, roomViewModel: RoomViewModel){
-    var showConfirmDialog by remember { mutableStateOf(false) }
         when {
             room == null -> {
                 LoadingIndicator("Carregando sala...")
             }
 
-            room?.id.isNullOrBlank() -> {
+            room.id.isBlank() -> {
                 Text(
                     "Erro ao carregar a sala",
                     modifier = Modifier
@@ -52,103 +51,48 @@ fun RoomContent(room: Room?, innerPadding: PaddingValues, navController: NavHost
                         .padding(innerPadding)
                         .padding(16.dp)
                 ) {
-                    room?.let { safeRoom ->
+                    room.let { safeRoom ->
                         val isLoggedUserOwner = safeRoom.owner.id == roomViewModel.loggedUserId
                         val isLoggedUserGuest = safeRoom.guest.id == roomViewModel.loggedUserId
-                        if (safeRoom.status == RoomStatusesEnum.WAITING.status) {
-                            LoadingIndicator("Aguardando adversário...")
-                        }
+                        when (safeRoom.status) {
+                            RoomStatusesEnum.WAITING.status -> {
+                                LoadingIndicator("Aguardando adversário...")
+                            }
 
-                        if (safeRoom.status == RoomStatusesEnum.PLAYING.status) {
-                            Text(
-                                "Round: ${safeRoom.round + 1}",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                "Vez de: ${if (safeRoom.ownerTurn) safeRoom.owner.nickName else safeRoom.guest.nickName}",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-
-                            // Pontuação
-                            Text("Pontuações:", style = MaterialTheme.typography.titleMedium)
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        safeRoom.owner.nickName,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                    Text(
-                                        "${safeRoom.owner.points} pts",
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                }
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        safeRoom.guest.nickName,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                    Text(
-                                        "${safeRoom.guest.points} pts",
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                }
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Button(
-                                        onClick = {
-                                            showConfirmDialog = true
+                            RoomStatusesEnum.PLAYING.status -> {
+                                if ((isLoggedUserOwner && !safeRoom.guest.online) ||
+                                    (isLoggedUserGuest && !safeRoom.owner.online)
+                                ) {
+                                    SimpleOpponentHasLeft(
+                                        safeRoom,
+                                        onExit = {
+                                            leaveGame(
+                                                roomViewModel,
+                                                navController,
+                                                isLoggedUserOwner
+                                            )
                                         }
-                                    ) {
-                                        Text("Sair")
-
-                                    }
+                                    )
+                                } else {
+                                    PlayingGame(
+                                        safeRoom,
+                                        roomViewModel,
+                                        navController,
+                                        isLoggedUserOwner
+                                    )
                                 }
                             }
 
-                            if (showConfirmDialog) {
-                                ConfirmActionDialog(
-                                    dialogTitle = "Confirmação",
-                                    dialogText = "Tem certeza que deseja sair do jogo?",
-                                    confirmText = "Sim",
-                                    dismissText = "Cancelar",
-                                    onConfirm = {
+                            RoomStatusesEnum.FINISHED.status -> {
+                                SimpleGameOverDialog(
+                                    safeRoom,
+                                    roomViewModel,
+                                    onRestart = {},
+                                    onExit = {
                                         leaveGame(roomViewModel, navController, isLoggedUserOwner)
-                                        showConfirmDialog = false
-                                    },
-                                    onDismiss = {
-                                        showConfirmDialog = false
                                     }
                                 )
                             }
-
-                            Spacer(modifier = Modifier.padding(8.dp))
-
-                            Clues(safeRoom, roomViewModel)
-                        }
-                        if (safeRoom.status == RoomStatusesEnum.FINISHED.status) {
-                            SimpleGameOverDialog(
-                                safeRoom,
-                                roomViewModel,
-                                onRestart = {},
-                                onExit = {
-                                    leaveGame(roomViewModel, navController, isLoggedUserOwner)
-                                }
-                            )
-                        }
-                        if (safeRoom.status == RoomStatusesEnum.PLAYING.status &&
-                            (
-                                    (isLoggedUserOwner && !safeRoom.guest.online) ||
-                                            (isLoggedUserGuest && !safeRoom.owner.online)
-                                    )
-                        ) {
-                            SimpleOpponentHasLeft(
-                                safeRoom,
-                                onExit = {
-                                    leaveGame(roomViewModel, navController, isLoggedUserOwner)
-                                }
-                            )
                         }
                     }
                 }
@@ -201,7 +145,6 @@ fun Clues(room: Room, roomViewModel: RoomViewModel) {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Botão
             Button(
                 onClick = { roomViewModel.verifyAswer(textInput.toString(), room) },
                 modifier = Modifier.fillMaxWidth()
@@ -353,7 +296,6 @@ fun PlayingGame(safeRoom: Room, roomViewModel: RoomViewModel, navController: Nav
         style = MaterialTheme.typography.bodyLarge
     )
 
-    // Pontuação
     Text("Pontuações:", style = MaterialTheme.typography.titleMedium)
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
