@@ -83,7 +83,8 @@ class HomeRepository {
             "status" to RoomStatusesEnum.PLAYING.status,
             "guest/id" to loggedUserId.toString(),
             "guest/nickName" to loggedUserName,
-            "guest/online" to true
+            "guest/online" to true,
+            "drawnWords/0/used" to true
         )
 
         roomsRef.child(roomId)

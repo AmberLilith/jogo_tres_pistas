@@ -133,7 +133,7 @@ fun RoomScreen(
                                 roomViewModel,
                                 onRestart = { /*viewModel.restartGame()*/ },
                                 onExit = {
-                                    roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false)
+                                    roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {}
                                     navController.popBackStack() }
                             )
                         }

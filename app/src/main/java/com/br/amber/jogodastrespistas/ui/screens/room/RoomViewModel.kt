@@ -44,44 +44,52 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
         }
     }
 
-    fun changeTurn(isOwnerTurn: Boolean) {
+    fun changeTurn(isOwnerTurn: Boolean, onSuccess: () -> Unit) {
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updateTurn(roomId, isOwnerTurn)
+                repository.updateTurn(roomId, isOwnerTurn, onSuccess)
             }
         }
     }
 
-    fun updateStatus(status: String) {
+    fun updateStatus(status: String, onSuccess: () -> Unit) {
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updateStatus(roomId, status)
+                repository.updateStatus(roomId, status, onSuccess)
             }
         }
     }
 
-    fun updateCluesShown(count: Int) {
+    fun updateCluesShown(count: Int, onSuccess: () -> Unit) {
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updateCluesShown(roomId, count)
+                repository.updateCluesShown(roomId, count, onSuccess)
             }
         }
     }
 
-    fun advanceRound() {
+    fun updateWordUsed(wordIndex: Int, onSuccess: () -> Unit){
+        currentRoomId?.let { roomId ->
+            viewModelScope.launch {
+                repository.updateWordUsed(roomId, wordIndex, onSuccess)
+            }
+        }
+    }
+
+    fun advanceRound(nextRound: Int, onSuccess: () -> Unit) {
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
                 _roomState.value?.let { currentRoom ->
-                    repository.updateRound(roomId, currentRoom.round + 1)
+                    repository.updateRound(roomId, nextRound, onSuccess)
                 }
             }
         }
     }
 
-    fun setPlayerOnlineStatus(isOwner: Boolean, isOnline: Boolean) {
+    fun setPlayerOnlineStatus(isOwner: Boolean, isOnline: Boolean, onSuccess: () -> Unit) {
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updatePlayerOnlineStatus(roomId, isOwner, isOnline)
+                repository.updatePlayerOnlineStatus(roomId, isOwner, isOnline, onSuccess)
             }
         }
     }
@@ -110,29 +118,38 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
         if(isAnswerCorrect(wordToVerify, answer)){
             addPoints(isOwner, indexScore)
             if(nextRound == Room.NUMBER_OF_ROUNDS){
-                updateStatus(RoomStatusesEnum.FINISHED.status)
+                updateStatus(RoomStatusesEnum.FINISHED.status, onSuccess = {})
             }else{
-                startNewRound(isOwnerTurn)
+                startNewRound(isOwnerTurn, nextRound)
             }
 
         }else{
                 if(room.cluesShown < 2){
-                    changeTurn(isOwnerTurn)
-                    updateCluesShown(room.cluesShown + 1)
+                    changeTurn(
+                        isOwnerTurn,
+                        onSuccess = {
+                            updateCluesShown(room.cluesShown + 1, onSuccess = {})
+                        }
+                    )
+
                 }else{
                     if(nextRound == Room.NUMBER_OF_ROUNDS){
-                        updateStatus(RoomStatusesEnum.FINISHED.status)
+                        updateStatus(RoomStatusesEnum.FINISHED.status, onSuccess = {})
                     }else{
-                        startNewRound(isOwnerTurn)
+                        startNewRound(isOwnerTurn, nextRound)
                     }
                 }
 
         }
     }
 
-    fun startNewRound(isOwnerTurn: Boolean){
-        changeTurn(isOwnerTurn)
-        updateCluesShown(0)
-        advanceRound()
+    fun startNewRound(isOwnerTurn: Boolean, nextRound: Int){
+        changeTurn(isOwnerTurn){
+            updateCluesShown(0){
+                advanceRound(nextRound) {
+                    updateWordUsed(nextRound, {})
+                }
+            }
+        }
     }
 }
