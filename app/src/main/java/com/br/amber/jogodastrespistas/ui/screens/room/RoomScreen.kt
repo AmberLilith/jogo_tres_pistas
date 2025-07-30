@@ -44,6 +44,7 @@ fun RoomScreen(
     roomId: String
 ) {
     val repository = remember { RoomRepository() }
+    var showConfirmDialog by remember { mutableStateOf(false) }
     val roomViewModel: RoomViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -143,17 +144,29 @@ fun RoomScreen(
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Button(
                                         onClick = {
-                                            leaveGame(
-                                                roomViewModel,
-                                                navController,
-                                                isLoggedUserOwner
-                                            )
+                                            showConfirmDialog = true
                                         }
                                     ) {
                                         Text("Sair")
 
                                     }
                                 }
+                            }
+
+                            if (showConfirmDialog) {
+                                ConfirmActionDialog(
+                                    dialogTitle = "Confirmação",
+                                    dialogText = "Tem certeza que deseja sair do jogo?",
+                                    confirmText = "Sim",
+                                    dismissText = "Cancelar",
+                                    onConfirm = {
+                                        leaveGame(roomViewModel, navController, isLoggedUserOwner)
+                                        showConfirmDialog = false
+                                    },
+                                    onDismiss = {
+                                        showConfirmDialog = false
+                                    }
+                                )
                             }
 
                             Spacer(modifier = Modifier.padding(8.dp))
@@ -164,13 +177,12 @@ fun RoomScreen(
                             SimpleGameOverDialog(
                                 safeRoom,
                                 roomViewModel,
-                                onRestart = { /*viewModel.restartGame()*/ },
+                                onRestart = {},
                                 onExit = {
                                     leaveGame(roomViewModel, navController, isLoggedUserOwner)
                                 }
                             )
                         }
-                        //TODO não mostra SimpleOpponentHasLeft para quem sair do jogo
                         if (safeRoom.status == RoomStatusesEnum.PLAYING.status &&
                             (
                                     (isLoggedUserOwner && !safeRoom.guest.online) ||
@@ -338,6 +350,41 @@ fun SimpleOpponentHasLeft(room: Room, roomViewModel: RoomViewModel, onExit: () -
                 onClick = onExit
             ) {
                 Text("Sair")
+
+            }
+        }
+    )
+}
+
+@Composable
+fun ConfirmActionDialog(dialogTitle: String,dialogText: String, confirmText: String, dismissText: String, onConfirm: () -> Unit, onDismiss: () -> Unit){
+    AlertDialog(
+        onDismissRequest = { /* não permite fechar clicando fora */ },
+        title = {
+            Text(dialogTitle, style = MaterialTheme.typography.headlineSmall)
+        },
+        text = {
+            Column {
+                Text(
+                    text = dialogText,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm
+            ) {
+                Text(confirmText)
+
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = onDismiss
+            ) {
+                Text(dismissText)
 
             }
         }
