@@ -320,9 +320,6 @@ fun SimpleGameOverDialog(
 
 @Composable
 fun SimpleOpponentHasLeft(room: Room, roomViewModel: RoomViewModel, onExit: () -> Unit) {
-    Log.d("DEBUG", "roomViewModel.loggedUserId = ${roomViewModel.loggedUserId}")
-    Log.d("DEBUG", "room.owner.nickName = ${room.owner.nickName}")
-    Log.d("DEBUG", "room.guest.nickName = ${room.guest.nickName}")
     val whoHasLeft =
         if (!room.owner.online) room.owner.nickName else room.guest.nickName
     AlertDialog(
