@@ -27,78 +27,78 @@ import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.models.RoomStatusesEnum
 import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
 
-@Composable //TODO não está sendo usada porque ao ser passada com content para DefaultScaffold, seu código não está sendo executado
+@Composable
 fun RoomContent(room: Room?, innerPadding: PaddingValues, navController: NavHostController, roomViewModel: RoomViewModel){
-        when {
-            room == null -> {
-                LoadingIndicator("Carregando sala...")
-            }
+    when {
+        room == null -> {
+            LoadingIndicator("Carregando sala...")
+        }
 
-            room.id.isBlank() -> {
-                Text(
-                    "Erro ao carregar a sala",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .padding(16.dp)
-                )
-            }
+        room.id.isBlank() -> {
+            Text(
+                "Erro ao carregar a sala",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(16.dp)
+            )
+        }
 
-            else -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .padding(16.dp)
-                ) {
-                    room.let { safeRoom ->
-                        val isLoggedUserOwner = safeRoom.owner.id == roomViewModel.loggedUserId
-                        val isLoggedUserGuest = safeRoom.guest.id == roomViewModel.loggedUserId
-                        when (safeRoom.status) {
-                            RoomStatusesEnum.WAITING.status -> {
-                                LoadingIndicator("Aguardando adversário...")
-                            }
+        else -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(16.dp)
+            ) {
+                room.let { safeRoom ->
+                    val isLoggedUserOwner = safeRoom.owner.id == roomViewModel.loggedUserId
+                    val isLoggedUserGuest = safeRoom.guest.id == roomViewModel.loggedUserId
 
-                            RoomStatusesEnum.PLAYING.status -> {
-                                if ((isLoggedUserOwner && !safeRoom.guest.online) ||
-                                    (isLoggedUserGuest && !safeRoom.owner.online)
-                                ) {
-                                    SimpleOpponentHasLeft(
-                                        safeRoom,
-                                        onExit = {
-                                            leaveGame(
-                                                roomViewModel,
-                                                navController,
-                                                isLoggedUserOwner
-                                            )
-                                        }
-                                    )
-                                } else {
-                                    PlayingGame(
-                                        safeRoom,
-                                        roomViewModel,
-                                        navController,
-                                        isLoggedUserOwner
-                                    )
-                                }
-                            }
+                    when (safeRoom.status) {
+                        RoomStatusesEnum.WAITING.status -> {
+                            LoadingIndicator("Aguardando adversário...")
+                        }
 
-                            RoomStatusesEnum.FINISHED.status -> {
-                                SimpleGameOverDialog(
+                        RoomStatusesEnum.PLAYING.status -> {
+                            if ((isLoggedUserOwner && !safeRoom.guest.online) ||
+                                (isLoggedUserGuest && !safeRoom.owner.online)
+                            ) {
+                                SimpleOpponentHasLeft(
                                     safeRoom,
-                                    roomViewModel,
-                                    onRestart = {},
                                     onExit = {
-                                        leaveGame(roomViewModel, navController, isLoggedUserOwner)
+                                        leaveGame(
+                                            roomViewModel,
+                                            navController,
+                                            isLoggedUserOwner
+                                        )
                                     }
                                 )
+                            } else {
+                                PlayingGame(
+                                    safeRoom,
+                                    roomViewModel,
+                                    navController,
+                                    isLoggedUserOwner
+                                )
                             }
+                        }
+
+                        RoomStatusesEnum.FINISHED.status -> {
+                            SimpleGameOverDialog(
+                                safeRoom,
+                                roomViewModel,
+                                onRestart = {},
+                                onExit = {
+                                    leaveGame(roomViewModel, navController, isLoggedUserOwner)
+                                }
+                            )
                         }
                     }
                 }
             }
         }
-
+    }
 }
 
 @Composable
@@ -221,7 +221,7 @@ fun SimpleOpponentHasLeft(room: Room, onExit: () -> Unit) {
     AlertDialog(
         onDismissRequest = { /* não permite fechar clicando fora */ },
         title = {
-            Text("Fim de Jogo!", style = MaterialTheme.typography.headlineSmall)
+            Text("Jogo encerrado!", style = MaterialTheme.typography.headlineSmall)
         },
         text = {
             Column {
