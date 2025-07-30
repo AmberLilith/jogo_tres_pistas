@@ -1,5 +1,6 @@
 package com.br.amber.jogodastrespistas.ui.screens.room
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -73,11 +74,12 @@ fun RoomScreen(
                 }
             )
         }
-    ){ innerPadding ->
+    ) { innerPadding ->
         when {
             room == null -> {
                 LoadingIndicator("Carregando sala...")
             }
+
             room?.id.isNullOrBlank() -> {
                 Text(
                     "Erro ao carregar a sala",
@@ -87,6 +89,7 @@ fun RoomScreen(
                         .padding(16.dp)
                 )
             }
+
             else -> {
                 Column(
                     modifier = Modifier
@@ -95,12 +98,17 @@ fun RoomScreen(
                         .padding(16.dp)
                 ) {
                     room?.let { safeRoom ->
+                        val isLoggedUserOwner = safeRoom.owner.id == roomViewModel.loggedUserId
+                        val isLoggedUserGuest = safeRoom.guest.id == roomViewModel.loggedUserId
                         if (safeRoom.status == RoomStatusesEnum.WAITING.status) {
                             LoadingIndicator("Aguardando adversário...")
                         }
 
                         if (safeRoom.status == RoomStatusesEnum.PLAYING.status) {
-                            Text("Round: ${safeRoom.round + 1}", style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                "Round: ${safeRoom.round + 1}",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
                             Text(
                                 "Vez de: ${if (safeRoom.ownerTurn) safeRoom.owner.nickName else safeRoom.guest.nickName}",
                                 style = MaterialTheme.typography.bodyLarge
@@ -113,12 +121,38 @@ fun RoomScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(safeRoom.owner.nickName, style = MaterialTheme.typography.bodyMedium)
-                                    Text("${safeRoom.owner.points} pts", style = MaterialTheme.typography.bodyLarge)
+                                    Text(
+                                        safeRoom.owner.nickName,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        "${safeRoom.owner.points} pts",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
                                 }
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(safeRoom.guest.nickName, style = MaterialTheme.typography.bodyMedium)
-                                    Text("${safeRoom.guest.points} pts", style = MaterialTheme.typography.bodyLarge)
+                                    Text(
+                                        safeRoom.guest.nickName,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        "${safeRoom.guest.points} pts",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                }
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Button(
+                                        onClick = {
+                                            leaveGame(
+                                                roomViewModel,
+                                                navController,
+                                                isLoggedUserOwner
+                                            )
+                                        }
+                                    ) {
+                                        Text("Sair")
+
+                                    }
                                 }
                             }
 
@@ -126,15 +160,29 @@ fun RoomScreen(
 
                             Clues(safeRoom, roomViewModel)
                         }
-                        if(safeRoom.status == RoomStatusesEnum.FINISHED.status){
-                            val isLoggedUserOwner = safeRoom.owner.id == roomViewModel.loggedUserId
+                        if (safeRoom.status == RoomStatusesEnum.FINISHED.status) {
                             SimpleGameOverDialog(
                                 safeRoom,
                                 roomViewModel,
                                 onRestart = { /*viewModel.restartGame()*/ },
                                 onExit = {
-                                    roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {}
-                                    navController.popBackStack() }
+                                    leaveGame(roomViewModel, navController, isLoggedUserOwner)
+                                }
+                            )
+                        }
+                        //TODO não mostra SimpleOpponentHasLeft para quem sair do jogo
+                        if (safeRoom.status == RoomStatusesEnum.PLAYING.status &&
+                            (
+                                    (isLoggedUserOwner && !safeRoom.guest.online) ||
+                                            (isLoggedUserGuest && !safeRoom.owner.online)
+                                    )
+                        ) {
+                            SimpleOpponentHasLeft(
+                                safeRoom,
+                                roomViewModel,
+                                onExit = {
+                                    leaveGame(roomViewModel, navController, isLoggedUserOwner)
+                                }
                             )
                         }
                     }
@@ -161,7 +209,7 @@ fun Clues(room: Room, roomViewModel: RoomViewModel) {
         )
 
 
-        if(room.cluesShown > 0){
+        if (room.cluesShown > 0) {
             Text(
                 text = "${ScoreEnum.MEDIAN.points} pts - ${room.drawnWords[room.round].clues[1]}",
                 modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -169,17 +217,17 @@ fun Clues(room: Room, roomViewModel: RoomViewModel) {
         }
 
 
-        if(room.cluesShown > 1){
+        if (room.cluesShown > 1) {
             Text(
                 text = "${ScoreEnum.LOWER.points} pts - ${room.drawnWords[room.round].clues[2]}",
                 modifier = Modifier.align(Alignment.End)
             )
         }
 
-        if(
+        if (
             (roomViewModel.loggedUserId == room.owner.id && room.ownerTurn) ||
             (roomViewModel.loggedUserId == room.guest.id && !room.ownerTurn)
-        ){
+        ) {
 
             TextField(
                 value = textInput,
@@ -202,10 +250,15 @@ fun Clues(room: Room, roomViewModel: RoomViewModel) {
 }
 
 @Composable
-fun SimpleGameOverDialog(room: Room, roomViewModel: RoomViewModel, onRestart: () -> Unit, onExit: () -> Unit) {
+fun SimpleGameOverDialog(
+    room: Room,
+    roomViewModel: RoomViewModel,
+    onRestart: () -> Unit,
+    onExit: () -> Unit
+) {
     val winner = when {
-        room.owner.points > room.guest.points -> if(roomViewModel.loggedUserId == room.owner.id) "Você venceu!" else "${room.owner.nickName} venceu!"
-        room.guest.points > room.owner.points -> if(roomViewModel.loggedUserId == room.guest.id) "Você venceu!" else "${room.guest.nickName} venceu!"
+        room.owner.points > room.guest.points -> if (roomViewModel.loggedUserId == room.owner.id) "Você venceu!" else "${room.owner.nickName} venceu!"
+        room.guest.points > room.owner.points -> if (roomViewModel.loggedUserId == room.guest.id) "Você venceu!" else "${room.guest.nickName} venceu!"
         else -> "Jogo empatado!"
     }
     val bothPlayersAreOnline = room.owner.online && room.guest.online
@@ -227,10 +280,10 @@ fun SimpleGameOverDialog(room: Room, roomViewModel: RoomViewModel, onRestart: ()
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
-                    Text(
-                        text = if(bothPlayersAreOnline) "Deseja jogar novamente?"  else "Não é possível jogar novamente, pois seu adversário saiu do jogo!",
-                        color = if(bothPlayersAreOnline) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
-                    )
+                Text(
+                    text = if (bothPlayersAreOnline) "Deseja jogar novamente?" else "Não é possível jogar novamente, pois seu adversário saiu do jogo!",
+                    color = if (bothPlayersAreOnline) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
+                )
 
             }
         },
@@ -252,3 +305,51 @@ fun SimpleGameOverDialog(room: Room, roomViewModel: RoomViewModel, onRestart: ()
         }
     )
 }
+
+@Composable
+fun SimpleOpponentHasLeft(room: Room, roomViewModel: RoomViewModel, onExit: () -> Unit) {
+    Log.d("DEBUG", "roomViewModel.loggedUserId = ${roomViewModel.loggedUserId}")
+    Log.d("DEBUG", "room.owner.nickName = ${room.owner.nickName}")
+    Log.d("DEBUG", "room.guest.nickName = ${room.guest.nickName}")
+    val whoHasLeft =
+        if (!room.owner.online) room.owner.nickName else room.guest.nickName
+    AlertDialog(
+        onDismissRequest = { /* não permite fechar clicando fora */ },
+        title = {
+            Text("Fim de Jogo!", style = MaterialTheme.typography.headlineSmall)
+        },
+        text = {
+            Column {
+                Text(
+                    text = "$whoHasLeft saiu do jogo!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = "Clique em sair para voltar para a tela inicial",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onExit
+            ) {
+                Text("Sair")
+
+            }
+        }
+    )
+}
+
+private fun leaveGame(
+    roomViewModel: RoomViewModel,
+    navController: NavHostController,
+    isLoggedUserOwner: Boolean
+) {
+    roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {}
+    navController.popBackStack()
+}
+
