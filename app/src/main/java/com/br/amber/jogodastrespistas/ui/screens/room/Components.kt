@@ -1,30 +1,43 @@
 package com.br.amber.jogodastrespistas.ui.screens.room
 
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.enums.ScoreEnum
 import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.models.RoomStatusesEnum
+import com.br.amber.jogodastrespistas.ui.components.dialogs.DefaultDialog
 import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
 
 @Composable
@@ -75,7 +88,7 @@ fun RoomContent(room: Room?, innerPadding: PaddingValues, navController: NavHost
                                     }
                                 )
                             } else {
-                                PlayingGame(
+                                StartGame(
                                     safeRoom,
                                     roomViewModel,
                                     navController,
@@ -85,7 +98,7 @@ fun RoomContent(room: Room?, innerPadding: PaddingValues, navController: NavHost
                         }
 
                         RoomStatusesEnum.FINISHED.status -> {
-                            SimpleGameOverDialog(
+                            SimpleGameOverDialog(//TODO fechar esse dialog antes de chamar leaveGame
                                 safeRoom,
                                 roomViewModel,
                                 onRestart = {},
@@ -103,57 +116,59 @@ fun RoomContent(room: Room?, innerPadding: PaddingValues, navController: NavHost
 
 @Composable
 fun Clues(room: Room, roomViewModel: RoomViewModel) {
-    var textInput by remember { mutableStateOf("") }
+    if(room.chosenWordIndex > -1){
+        var textInput by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-
-        Text(
-            text = "${ScoreEnum.HIGHER.points} pts - ${room.drawnWords[room.round].clues[0]}",
-            modifier = Modifier.align(Alignment.Start)
-        )
-
-
-        if (room.cluesShown > 0) {
-            Text(
-                text = "${ScoreEnum.MEDIAN.points} pts - ${room.drawnWords[room.round].clues[1]}",
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-        }
-
-
-        if (room.cluesShown > 1) {
-            Text(
-                text = "${ScoreEnum.LOWER.points} pts - ${room.drawnWords[room.round].clues[2]}",
-                modifier = Modifier.align(Alignment.End)
-            )
-        }
-
-        if (
-            (roomViewModel.loggedUserId == room.owner.id && room.ownerTurn) ||
-            (roomViewModel.loggedUserId == room.guest.id && !room.ownerTurn)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            TextField(
-                value = textInput,
-                onValueChange = { textInput = it },
-                label = { Text("Digite algo") },
-                modifier = Modifier.fillMaxWidth()
+            Text(
+                text = "${ScoreEnum.HIGHER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[0]}",
+                modifier = Modifier.align(Alignment.Start)
             )
 
-            Button(
-                onClick = { roomViewModel.verifyAswer(textInput.toString(), room) },
-                modifier = Modifier.fillMaxWidth()
+
+            if (room.cluesShown > 0) {
+                Text(
+                    text = "${ScoreEnum.MEDIAN.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[1]}",
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            }
+
+
+            if (room.cluesShown > 1) {
+                Text(
+                    text = "${ScoreEnum.LOWER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[2]}",
+                    modifier = Modifier.align(Alignment.End)
+                )
+            }
+
+            if (
+                (roomViewModel.loggedUserId == room.owner.id && room.ownerTurn) ||
+                (roomViewModel.loggedUserId == room.guest.id && !room.ownerTurn)
             ) {
-                Text("Enviar")
+
+                TextField(
+                    value = textInput,
+                    onValueChange = { textInput = it },
+                    label = { Text("Digite algo") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Button(
+                    onClick = { roomViewModel.verifyAswer(textInput.toString(), room) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Enviar")
+                }
+
             }
 
         }
-
     }
 }
 
@@ -284,9 +299,25 @@ fun ConfirmActionDialog(dialogTitle: String,dialogText: String, confirmText: Str
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PlayingGame(safeRoom: Room, roomViewModel: RoomViewModel, navController: NavHostController, isLoggedUserOwner: Boolean){
+fun StartGame(safeRoom: Room, roomViewModel: RoomViewModel, navController: NavHostController, isLoggedUserOwner: Boolean){
     var showConfirmDialog by remember { mutableStateOf(false) }
+    var showChooseWordDialog by remember { mutableStateOf(false) }
+    var showClues by remember { mutableStateOf(false) }
+
+    LaunchedEffect(safeRoom.round) {
+        if ((isLoggedUserOwner && safeRoom.ownerTurn) || (!isLoggedUserOwner && !safeRoom.ownerTurn)) {
+            showChooseWordDialog = true
+        }
+    }
+
+    LaunchedEffect(safeRoom.cluesShown) {
+        if (safeRoom.cluesShown > -1) {
+            showClues = true
+        }
+    }
+
     Text(
         "Round: ${safeRoom.round + 1}",
         style = MaterialTheme.typography.bodyLarge
@@ -349,9 +380,52 @@ fun PlayingGame(safeRoom: Room, roomViewModel: RoomViewModel, navController: Nav
         )
     }
 
+
+        DefaultDialog(
+            showDialog = showChooseWordDialog,
+            "Escolha um cartão!",
+            backgroundTransparent = true,
+            content  = {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    safeRoom.drawnWords.forEachIndexed { index, word ->
+                        Box(
+                            modifier = Modifier
+                                .width(100.dp)
+                                .height(50.dp)
+                                .padding(4.dp)
+                                .background(if(!word.used) Color.Blue else Color.Gray)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    if(!word.used){
+                                        roomViewModel.updateChosenWordIndex(index) {
+                                            roomViewModel.updateCluesShown(0){
+                                                roomViewModel.updateWordUsed(index){
+                                                    showChooseWordDialog = false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                        ){
+                            Text(word.name)
+                        }
+                    }
+                }
+            }
+
+        )
+
     Spacer(modifier = Modifier.padding(8.dp))
 
-    Clues(safeRoom, roomViewModel)
+    if(showClues){
+        Clues(safeRoom, roomViewModel)
+    }else{
+        LoadingIndicator("Aguardando escolha da próxima palavra...")
+    }
 }
 
 internal fun leaveGame(

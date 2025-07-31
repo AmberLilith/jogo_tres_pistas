@@ -1,5 +1,6 @@
 package com.br.amber.jogodastrespistas.ui.screens.room
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.br.amber.jogodastrespistas.data.RoomRepository
@@ -60,6 +61,14 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
         }
     }
 
+    fun updateChosenWordIndex(wordIndex: Int, onSuccess: () -> Unit){
+        currentRoomId?.let { roomId ->
+            viewModelScope.launch {
+                repository.updateChosenWordIndex(roomId, wordIndex, onSuccess)
+            }
+        }
+    }
+
     fun updateCluesShown(count: Int, onSuccess: () -> Unit) {
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
@@ -109,12 +118,12 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
         answer: String,
         room: Room
     ){
-        val wordToVerify: String = room.drawnWords[room.round].name
+        val wordToVerify: String = room.drawnWords[room.chosenWordIndex].name
         val indexScore: Int = room.cluesShown
         val isOwner: Boolean = room.owner.id == loggedUserId
         val isOwnerTurn: Boolean = room.ownerTurn
         val nextRound: Int = room.round + 1
-
+        Log.d("DEBUG", "Veficando se $wordToVerify é igual a $answer")
         if(isAnswerCorrect(wordToVerify, answer)){
             addPoints(isOwner, indexScore)
             if(nextRound == Room.NUMBER_OF_ROUNDS){
@@ -145,9 +154,9 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
 
     fun startNewRound(isOwnerTurn: Boolean, nextRound: Int){
         changeTurn(isOwnerTurn){
-            updateCluesShown(0){
-                advanceRound(nextRound) {
-                    updateWordUsed(nextRound, {})
+            updateChosenWordIndex(-1){
+                updateCluesShown(-1){
+                    advanceRound(nextRound) {}
                 }
             }
         }

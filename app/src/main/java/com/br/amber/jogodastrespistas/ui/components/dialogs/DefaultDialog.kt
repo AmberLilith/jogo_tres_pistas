@@ -64,17 +64,17 @@ fun DefaultDialog(
 }
 
 /*Como Chamar:
-var showTransparentDialog by remember { mutableStateOf(false) }
+var showDefaultDialog by remember { mutableStateOf(false) }
 
             Button(
-                onClick = { showTransparentDialog = true },
+                onClick = { showDefaultDialog = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Testar dialog")
             }
 
-            TransparentDialog(
-                showDialog = showTransparentDialog,
+            DefaultDialog(
+                showDialog = showDefaultDialog,
                 "Teste mostrando Dialog Transparente",
                 backgroundTransparent = true,
                 content  = {

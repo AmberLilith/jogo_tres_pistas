@@ -33,10 +33,6 @@ class RoomRepository {
         }
     }
 
-    suspend fun updateRoom(room: Room) {
-        roomsRef.child(room.id).setValue(room)
-    }
-
     fun updatePoints(roomId: String, isOwner: Boolean, points: Int) {
         val path = if (isOwner) "owner/points" else "guest/points"
         val pointsRef = roomsRef.child(roomId).child(path)
@@ -58,6 +54,15 @@ class RoomRepository {
             onSuccess()
         }.addOnFailureListener { error ->
             Log.e("Firebase", "Erro ao atualizar o turno: ${error.message}")
+        }
+    }
+
+    fun updateChosenWordIndex(roomId: String, count: Int, onSuccess: () -> Unit) {
+        roomsRef.child(roomId).child("chosenWordIndex").setValue(count).addOnSuccessListener {
+            Log.d("Firebase", "chosenWordIndex atualizada com sucesso")
+            onSuccess()
+        }.addOnFailureListener { error ->
+            Log.e("Firebase", "Erro ao atualizar chosenWordIndex: ${error.message}")
         }
     }
 
