@@ -1,8 +1,5 @@
 package com.br.amber.jogodastrespistas.ui.screens.room
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -14,15 +11,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.data.RoomRepository
-import com.br.amber.jogodastrespistas.models.RoomStatusesEnum
-import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
