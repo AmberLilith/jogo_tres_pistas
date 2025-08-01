@@ -41,17 +41,18 @@ fun DefaultDialog(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color(0x0D000000))
-                    .padding(32.dp),
+                    .padding(32.dp)
+                    .background(Color.Transparent),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
                     modifier = Modifier
-                        .background(color = Color.White)
+                        .background(if (backgroundTransparent) Color.Transparent else Color.White)
                         .padding(16.dp)
                         .verticalScroll(rememberScrollState())
                         .defaultMinSize(minWidth = 200.dp)
                 ) {
-                    Text(title, style = MaterialTheme.typography.titleLarge, color = if (backgroundTransparent) Color.Transparent else Color.White)
+                    Text(title, style = MaterialTheme.typography.titleLarge)
                     Spacer(modifier = Modifier.height(8.dp))
 
                     content()

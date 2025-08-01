@@ -103,7 +103,7 @@ class RoomRepository {
         }
     }
 
-    fun updateWordUsed(roomId: kotlin.String, wordIndex: Int, onSuccess: () -> Unit) {
+    fun updateWordUsed(roomId: String, wordIndex: Int, onSuccess: () -> Unit) {
         val path = "drawnWords/$wordIndex/used"
         roomsRef.child(roomId).child(path).setValue(true).addOnSuccessListener {
             Log.d("Firebase", "Status usado da palavra índice $wordIndex atualizado com sucesso")
@@ -112,4 +112,17 @@ class RoomRepository {
             Log.e("Firebase", "Erro ao atualizar o status usado da palavra índice $wordIndex: ${error.message}")
         }
     }
+
+    fun deleteRoom(roomId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        roomsRef.child(roomId).removeValue()
+            .addOnSuccessListener {
+                Log.d("Firebase", "Sala $roomId removida com sucesso")
+                onSuccess()
+            }
+            .addOnFailureListener { error ->
+                Log.e("Firebase", "Erro ao remover sala $roomId: ${error.message}")
+                onFailure(error)
+            }
+    }
+
 }

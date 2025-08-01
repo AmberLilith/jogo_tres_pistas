@@ -161,4 +161,12 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
             }
         }
     }
+
+    fun deleteRoom(onSuccess: () -> Unit, onFailure: (Exception) -> Unit){
+        currentRoomId?.let { roomId ->
+            viewModelScope.launch {
+                repository.deleteRoom(roomId, onSuccess, onFailure)
+            }
+        }
+    }
 }
