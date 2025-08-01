@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -416,34 +417,46 @@ fun StartGame(
         "Escolha um cartão!",
         backgroundTransparent = false,
         content = {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                safeRoom.drawnWords.forEachIndexed { index, word ->
-                    Box(
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(50.dp)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (!word.used) Color.Blue else Color.Gray)
-                            .clickable {
-                                if (!word.used) {
-                                    roomViewModel.updateChosenWordIndex(index) {
-                                        roomViewModel.updateCluesShown(0) {
-                                            roomViewModel.updateWordUsed(index) {
-                                                showChooseWordDialog = false
+            var showProgressbar by remember { mutableStateOf(false) }
+            if(!showProgressbar){
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+
+                    safeRoom.drawnWords.forEachIndexed { index, word ->
+                        Box(
+                            modifier = Modifier
+                                .width(100.dp)
+                                .height(50.dp)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (!word.used) Color.Blue else Color.Gray)
+                                .clickable {
+                                    if (!word.used) {
+                                        showProgressbar = true
+                                        roomViewModel.updateChosenWordIndex(index) {
+                                            roomViewModel.updateCluesShown(0) {
+                                                roomViewModel.updateWordUsed(index) {
+                                                    showChooseWordDialog = false
+                                                }
                                             }
                                         }
                                     }
-                                }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if(word.used){
+                                Text(word.name,
+                                    color = Color.White
+                                )
                             }
-                    ) {
-                        Text(word.name)
+                        }
                     }
                 }
+            }else{
+                LoadingIndicator("Carregando dicas...")
             }
         }
 
