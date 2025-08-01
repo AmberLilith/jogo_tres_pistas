@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -75,6 +74,8 @@ fun RoomContent(
                     var showDialogGameOver by remember { mutableStateOf(false) }
                     val isLoggedUserOwner = safeRoom.owner.id == roomViewModel.loggedUserId
                     val isLoggedUserGuest = safeRoom.guest.id == roomViewModel.loggedUserId
+                    val loggedUserName = if (isLoggedUserOwner) safeRoom.owner.nickName else safeRoom.guest.nickName
+                    val opponentName = if (isLoggedUserOwner) safeRoom.guest.nickName else safeRoom.owner.nickName
                     val bothPlayersAreOnline = room.owner.online && room.guest.online
 
                     DefaultDialog(
@@ -148,7 +149,7 @@ fun RoomContent(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             Text(
-                                text = "${room.owner.nickName}: ${room.owner.points} pts X ${room.guest.nickName}: ${room.guest.points} pts",
+                                text = "${if(isLoggedUserOwner) "Você" else room.owner.nickName} : ${room.owner.points} pts X ${if(isLoggedUserGuest) "Você" else room.guest.nickName})}: ${room.guest.points} pts",
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.padding(bottom = 12.dp)
                             )
@@ -225,7 +226,9 @@ fun RoomContent(
                                     safeRoom,
                                     roomViewModel,
                                     navController,
-                                    isLoggedUserOwner
+                                    isLoggedUserOwner,
+                                    loggedUserName,
+                                    opponentName
                                 )
                             }
                         }
@@ -243,7 +246,13 @@ fun RoomContent(
 }
 
 @Composable
-fun Clues(room: Room, roomViewModel: RoomViewModel) {
+fun Clues(
+    room: Room,
+    roomViewModel: RoomViewModel,
+    loggedUserName: String,
+    opponentName: String,
+    updateShowClues: () -> Unit
+) {
     if (room.chosenWordIndex > -1) {
         var textInput by remember { mutableStateOf("") }
 
@@ -288,12 +297,17 @@ fun Clues(room: Room, roomViewModel: RoomViewModel) {
                 )
 
                 Button(
-                    onClick = { roomViewModel.verifyAswer(textInput.toString(), room) },
+                    onClick = {
+                        updateShowClues()
+                        roomViewModel.verifyAswer(textInput.toString(), room)
+                              },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Enviar")
                 }
 
+            }else{
+                LoadingIndicator("Aguardando a resposta de $opponentName...")
             }
 
         }
@@ -307,7 +321,9 @@ fun StartGame(
     safeRoom: Room,
     roomViewModel: RoomViewModel,
     navController: NavHostController,
-    isLoggedUserOwner: Boolean
+    isLoggedUserOwner: Boolean,
+    loggedUserName: String,
+    opponentName: String
 ) {
     var showConfirmDialog by remember { mutableStateOf(false) }
     var showChooseWordDialog by remember { mutableStateOf(false) }
@@ -326,11 +342,7 @@ fun StartGame(
     }
 
     Text(
-        "Round: ${safeRoom.round + 1}",
-        style = MaterialTheme.typography.bodyLarge
-    )
-    Text(
-        "Vez de: ${if (safeRoom.ownerTurn) safeRoom.owner.nickName else safeRoom.guest.nickName}",
+        "Rodada: ${safeRoom.round + 1}",
         style = MaterialTheme.typography.bodyLarge
     )
 
@@ -341,7 +353,7 @@ fun StartGame(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                safeRoom.owner.nickName,
+                if(isLoggedUserOwner) "Você" else safeRoom.owner.nickName,
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
@@ -351,7 +363,7 @@ fun StartGame(
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                safeRoom.guest.nickName,
+                if(!isLoggedUserOwner) "Você" else safeRoom.guest.nickName,
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
@@ -465,9 +477,9 @@ fun StartGame(
     Spacer(modifier = Modifier.padding(8.dp))
 
     if (showClues) {
-        Clues(safeRoom, roomViewModel)
+        Clues(safeRoom, roomViewModel, loggedUserName,opponentName) { showClues = false }
     } else {
-        LoadingIndicator("Aguardando escolha da próxima palavra...")
+        LoadingIndicator("Aguardando $opponentName escolhe a próxima palavra...")
     }
 }
 
