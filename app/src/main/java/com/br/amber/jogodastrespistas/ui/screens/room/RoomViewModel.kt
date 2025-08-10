@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.br.amber.jogodastrespistas.data.RoomRepository
 import com.br.amber.jogodastrespistas.enums.ScoreEnum
 import com.br.amber.jogodastrespistas.models.Room
-import com.br.amber.jogodastrespistas.models.RoomStatusesEnum
+import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
 import com.br.amber.jogodastrespistas.normalize
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow

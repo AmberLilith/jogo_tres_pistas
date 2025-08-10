@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.enums.ScoreEnum
 import com.br.amber.jogodastrespistas.models.Room
-import com.br.amber.jogodastrespistas.models.RoomStatusesEnum
+import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
 import com.br.amber.jogodastrespistas.ui.components.dialogs.DefaultDialog
 import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
 

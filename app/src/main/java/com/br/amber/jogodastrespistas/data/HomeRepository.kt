@@ -2,7 +2,7 @@ package com.br.amber.jogodastrespistas.data
 
 import com.br.amber.jogodastrespistas.models.Player
 import com.br.amber.jogodastrespistas.models.Room
-import com.br.amber.jogodastrespistas.models.RoomStatusesEnum
+import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
 import com.br.amber.jogodastrespistas.models.Word
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot

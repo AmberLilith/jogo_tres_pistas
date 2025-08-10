@@ -1,5 +1,7 @@
 package com.br.amber.jogodastrespistas.models
 
+import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
+
 data class Room(
     val id: String = "",
     val owner: Player = Player(),
