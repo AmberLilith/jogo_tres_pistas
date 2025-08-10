@@ -300,7 +300,7 @@ fun Clues(
                 Button(
                     onClick = {
                         updateShowClues()
-                        roomViewModel.verifyAswer(textInput.toString(), room)
+                        roomViewModel.verifyAswer(textInput, room)
                               },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -388,7 +388,8 @@ fun StartGame(
         showDialog = showConfirmDialog,
         "Confirmação!",
         backgroundTransparent = false
-    ) {
+    )
+    {
 
         Column {
             Text(
@@ -428,52 +429,52 @@ fun StartGame(
     DefaultDialog(
         showDialog = showChooseWordDialog,
         "Escolha um cartão!",
-        backgroundTransparent = false,
-        content = {
-            var showProgressbar by remember { mutableStateOf(false) }
-            if(!showProgressbar){
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+        backgroundTransparent = false
 
-                    safeRoom.drawnWords.forEachIndexed { index, word ->
-                        Box(
-                            modifier = Modifier
-                                .width(100.dp)
-                                .height(50.dp)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(if (!word.used) Color.Blue else Color.Gray)
-                                .clickable {
-                                    if (!word.used) {
-                                        showProgressbar = true
-                                        roomViewModel.updateChosenWordIndex(index) {
-                                            roomViewModel.updateCluesShown(0) {
-                                                roomViewModel.updateWordUsed(index) {
-                                                    showChooseWordDialog = false
-                                                }
+    )
+    {
+        var showProgressbar by remember { mutableStateOf(false) }
+        if(!showProgressbar){
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+
+                safeRoom.drawnWords.forEachIndexed { index, word ->
+                    Box(
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(50.dp)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(if (!word.used) Color.Blue else Color.Gray)
+                            .clickable {
+                                if (!word.used) {
+                                    showProgressbar = true
+                                    roomViewModel.updateChosenWordIndex(index) {
+                                        roomViewModel.updateCluesShown(0) {
+                                            roomViewModel.updateWordUsed(index) {
+                                                showChooseWordDialog = false
                                             }
                                         }
                                     }
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if(word.used){
-                                Text(word.name,
-                                    color = Color.White
-                                )
-                            }
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if(word.used){
+                            Text(word.name,
+                                color = Color.White
+                            )
                         }
                     }
                 }
-            }else{
-                LoadingIndicator("Carregando dicas...")
             }
+        }else{
+            LoadingIndicator("Carregando dicas...")
         }
-
-    )
+    }
 
     Spacer(modifier = Modifier.padding(8.dp))
 

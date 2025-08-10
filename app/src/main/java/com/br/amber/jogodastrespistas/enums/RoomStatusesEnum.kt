@@ -4,5 +4,8 @@ enum class RoomStatusesEnum{
     WAITING,
     PLAYING,
     FINISHED,
-    DELETED
+    DELETED,
+    VERIFYING_ANSWER,
+    CHOOSING_WORD
+
 }
