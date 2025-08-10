@@ -82,9 +82,9 @@ fun RoomContent(
                         showDialog = showDialogOpponentHasLeft,
                         "Jogo encerrado!",
                         backgroundTransparent = false
-                    ) {
-                        val whoHasLeft =
-                            if (!room.owner.online) room.owner.nickName else room.guest.nickName
+                    )
+                    {
+                        val whoHasLeft = if (!room.owner.online) room.owner.nickName else room.guest.nickName
 
                         Column {
                             Text(
@@ -109,7 +109,7 @@ fun RoomContent(
                         ) {
                             Button(onClick = {
                                 roomViewModel.updateStatus(
-                                    RoomStatusesEnum.DELETED.status,
+                                    RoomStatusesEnum.DELETED.name,
                                     onSuccess = {
                                         roomViewModel.deleteRoom(
                                             onSuccess = {
@@ -136,7 +136,8 @@ fun RoomContent(
                         showDialog = showDialogGameOver,
                         "Jogo Finalizado!",
                         backgroundTransparent = false
-                    ) {
+                    )
+                    {
                         val winner = when {
                             room.owner.points > room.guest.points -> if (roomViewModel.loggedUserId == room.owner.id) "Você venceu!" else "${room.owner.nickName} venceu!"
                             room.guest.points > room.owner.points -> if (roomViewModel.loggedUserId == room.guest.id) "Você venceu!" else "${room.guest.nickName} venceu!"
@@ -185,7 +186,7 @@ fun RoomContent(
                                         )
                                     } else {
                                         roomViewModel.updateStatus(
-                                            RoomStatusesEnum.DELETED.status,
+                                            RoomStatusesEnum.DELETED.name,
                                             onSuccess = {
                                                 roomViewModel.deleteRoom(
                                                     onSuccess = {
@@ -212,11 +213,11 @@ fun RoomContent(
                     }
 
                     when (safeRoom.status) {
-                        RoomStatusesEnum.WAITING.status -> {
+                        RoomStatusesEnum.WAITING.name -> {
                             LoadingIndicator("Aguardando adversário...")
                         }
 
-                        RoomStatusesEnum.PLAYING.status -> {
+                        RoomStatusesEnum.PLAYING.name -> {
                             if ((isLoggedUserOwner && !safeRoom.guest.online) ||
                                 (isLoggedUserGuest && !safeRoom.owner.online)
                             ) {
@@ -233,7 +234,7 @@ fun RoomContent(
                             }
                         }
 
-                        RoomStatusesEnum.FINISHED.status -> {
+                        RoomStatusesEnum.FINISHED.name -> {
                             if (bothPlayersAreOnline) {
                                 showDialogGameOver = true
                             }

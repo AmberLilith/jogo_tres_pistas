@@ -54,7 +54,7 @@ class HomeRepository {
     }
 
     fun listenWaitingRooms(onUpdate: (List<Room>) -> Unit, onError: (Exception) -> Unit) {
-        roomsRef.orderByChild("status").equalTo(RoomStatusesEnum.WAITING.status)
+        roomsRef.orderByChild("status").equalTo(RoomStatusesEnum.WAITING.name)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val rooms = snapshot.children.mapNotNull { roomSnapshot ->
@@ -80,7 +80,7 @@ class HomeRepository {
         onError: (Exception) -> Unit
     ) {
         val updates = hashMapOf<String, Any>(
-            "status" to RoomStatusesEnum.PLAYING.status,
+            "status" to RoomStatusesEnum.PLAYING.name,
             "guest/id" to loggedUserId.toString(),
             "guest/nickName" to loggedUserName,
             "guest/online" to true

@@ -127,7 +127,7 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
         if(isAnswerCorrect(wordToVerify, answer)){
             addPoints(isOwner, indexScore)
             if(nextRound == Room.NUMBER_OF_ROUNDS){
-                updateStatus(RoomStatusesEnum.FINISHED.status, onSuccess = {})
+                updateStatus(RoomStatusesEnum.FINISHED.name, onSuccess = {})
             }else{
                 startNewRound(isOwnerTurn, nextRound)
             }
@@ -143,7 +143,7 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
 
                 }else{
                     if(nextRound == Room.NUMBER_OF_ROUNDS){
-                        updateStatus(RoomStatusesEnum.FINISHED.status, onSuccess = {})
+                        updateStatus(RoomStatusesEnum.FINISHED.name, onSuccess = {})
                     }else{
                         startNewRound(isOwnerTurn, nextRound)
                     }

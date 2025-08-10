@@ -5,7 +5,7 @@ data class Room(
     val owner: Player = Player(),
     val guest: Player = Player(id = "guest", online = false),
     var ownerTurn: Boolean = true,
-    var status: String = RoomStatusesEnum.WAITING.status,
+    var status: String = RoomStatusesEnum.WAITING.name,
     var chosenWordIndex: Int = -1,
     var cluesShown: Int = -1,
     var round: Int = 0,
@@ -14,6 +14,6 @@ data class Room(
     constructor() : this(id = "", owner = Player())
 
     companion object{
-        const val NUMBER_OF_ROUNDS = 3
+        const val NUMBER_OF_ROUNDS = 1
     }
 }
