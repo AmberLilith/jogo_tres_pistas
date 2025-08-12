@@ -7,7 +7,7 @@ data class Room(
     val owner: Player = Player(),
     val guest: Player = Player(id = "guest", online = false),
     var ownerTurn: Boolean = true,
-    var status: String = RoomStatusesEnum.WAITING.name,
+    var status: String = RoomStatusesEnum.WAITING_GUEST.name,
     var chosenWordIndex: Int = -1,
     var cluesShown: Int = -1,
     var round: Int = 0,

@@ -2,6 +2,7 @@ package com.br.amber.jogodastrespistas.ui.screens.room
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,7 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.br.amber.jogodastrespistas.enums.ScoreEnum
+import com.br.amber.jogodastrespistas.enums.PointsEnum
 import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
 import com.br.amber.jogodastrespistas.ui.components.dialogs.DefaultDialog
@@ -109,7 +110,7 @@ fun RoomContent(
                         ) {
                             Button(onClick = {
                                 roomViewModel.updateStatus(
-                                    RoomStatusesEnum.DELETED.name,
+                                    RoomStatusesEnum.ABANBDONED.name,
                                     onSuccess = {
                                         roomViewModel.deleteRoom(
                                             onSuccess = {
@@ -139,8 +140,8 @@ fun RoomContent(
                     )
                     {
                         val winner = when {
-                            room.owner.points > room.guest.points -> if (roomViewModel.loggedUserId == room.owner.id) "Você venceu!" else "${room.owner.nickName} venceu!"
-                            room.guest.points > room.owner.points -> if (roomViewModel.loggedUserId == room.guest.id) "Você venceu!" else "${room.guest.nickName} venceu!"
+                            room.owner.score > room.guest.score -> if (roomViewModel.loggedUserId == room.owner.id) "Você venceu!" else "${room.owner.nickName} venceu!"
+                            room.guest.score > room.owner.score -> if (roomViewModel.loggedUserId == room.guest.id) "Você venceu!" else "${room.guest.nickName} venceu!"
                             else -> "Jogo empatado!"
                         }
                         Column {
@@ -150,7 +151,7 @@ fun RoomContent(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             Text(
-                                text = "${if(isLoggedUserOwner) "Você" else room.owner.nickName} : ${room.owner.points} pts X ${if(isLoggedUserGuest) "Você" else room.guest.nickName})}: ${room.guest.points} pts",
+                                text = "${if(isLoggedUserOwner) "Você" else room.owner.nickName} : ${room.owner.score} pts X ${if(isLoggedUserGuest) "Você" else room.guest.nickName})}: ${room.guest.score} pts",
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.padding(bottom = 12.dp)
                             )
@@ -186,7 +187,7 @@ fun RoomContent(
                                         )
                                     } else {
                                         roomViewModel.updateStatus(
-                                            RoomStatusesEnum.DELETED.name,
+                                            RoomStatusesEnum.ABANBDONED.name,
                                             onSuccess = {
                                                 roomViewModel.deleteRoom(
                                                     onSuccess = {
@@ -213,7 +214,7 @@ fun RoomContent(
                     }
 
                     when (safeRoom.status) {
-                        RoomStatusesEnum.WAITING.name -> {
+                        RoomStatusesEnum.WAITING_GUEST.name -> {
                             LoadingIndicator("Aguardando adversário...")
                         }
 
@@ -260,19 +261,20 @@ fun Clues(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(16.dp)
+                .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(8.dp)),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
             Text(
-                text = "${ScoreEnum.HIGHER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[0]}",
+                text = "${PointsEnum.HIGHER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[0]}",
                 modifier = Modifier.align(Alignment.Start)
             )
 
 
             if (room.cluesShown > 0) {
                 Text(
-                    text = "${ScoreEnum.MEDIAN.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[1]}",
+                    text = "${PointsEnum.MEDIAN.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[1]}",
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
@@ -280,7 +282,7 @@ fun Clues(
 
             if (room.cluesShown > 1) {
                 Text(
-                    text = "${ScoreEnum.LOWER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[2]}",
+                    text = "${PointsEnum.LOWER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[2]}",
                     modifier = Modifier.align(Alignment.End)
                 )
             }
@@ -300,7 +302,7 @@ fun Clues(
                 Button(
                     onClick = {
                         updateShowClues()
-                        roomViewModel.verifyAswer(textInput, room)
+                        roomViewModel.verifyAnswer(textInput, room)
                               },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -358,7 +360,7 @@ fun StartGame(
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                "${safeRoom.owner.points} pts",
+                "${safeRoom.owner.score} pts",
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -368,7 +370,7 @@ fun StartGame(
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                "${safeRoom.guest.points} pts",
+                "${safeRoom.guest.score} pts",
                 style = MaterialTheme.typography.bodyLarge
             )
         }

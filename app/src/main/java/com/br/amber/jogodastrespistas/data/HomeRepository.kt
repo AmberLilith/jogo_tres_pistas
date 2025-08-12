@@ -54,7 +54,7 @@ class HomeRepository {
     }
 
     fun listenWaitingRooms(onUpdate: (List<Room>) -> Unit, onError: (Exception) -> Unit) {
-        roomsRef.orderByChild("status").equalTo(RoomStatusesEnum.WAITING.name)
+        roomsRef.orderByChild("status").equalTo(RoomStatusesEnum.WAITING_GUEST.name)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val rooms = snapshot.children.mapNotNull { roomSnapshot ->

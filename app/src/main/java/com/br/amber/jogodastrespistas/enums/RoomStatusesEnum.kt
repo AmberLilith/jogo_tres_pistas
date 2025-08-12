@@ -1,11 +1,14 @@
 package com.br.amber.jogodastrespistas.enums
 
 enum class RoomStatusesEnum{
-    WAITING,
+    WAITING_GUEST,
     PLAYING,
     FINISHED,
-    DELETED,
+    ABANBDONED,
     VERIFYING_ANSWER,
-    CHOOSING_WORD
+    CHOOSING_WORD,
+    GOT_WRONG_ANSWER,
+    GOT_CORRECT_ANSWER,
+    GOT_ROUND_END
 
 }

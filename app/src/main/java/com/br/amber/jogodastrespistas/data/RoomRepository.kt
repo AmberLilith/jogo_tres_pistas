@@ -33,18 +33,14 @@ class RoomRepository {
         }
     }
 
-    fun updatePoints(roomId: String, isOwner: Boolean, points: Int) {
-        val path = if (isOwner) "owner/points" else "guest/points"
+    fun setScore(roomId: String, isOwner: Boolean, newScore: Int, onSuccess: () -> Unit) {
+        val path = if (isOwner) "owner/score" else "guest/score"
         val pointsRef = roomsRef.child(roomId).child(path)
-
-        pointsRef.get().addOnSuccessListener { snapshot ->
-            val currentPoints = snapshot.getValue(Int::class.java) ?: 0
-
-            val newPoints = currentPoints + points
-
-            pointsRef.setValue(newPoints)
+        pointsRef.setValue(newScore).addOnSuccessListener {
+            Log.d("Firebase", "Score atualizada com sucesso")
+            onSuccess()
         }.addOnFailureListener { error ->
-            Log.e("Firebase", "Erro ao ler pontos: ${error.message}")
+            Log.e("Firebase", "Erro ao atualizar o score: ${error.message}")
         }
     }
 

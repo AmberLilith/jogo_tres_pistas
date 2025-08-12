@@ -1,10 +1,9 @@
 package com.br.amber.jogodastrespistas.ui.screens.room
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.br.amber.jogodastrespistas.data.RoomRepository
-import com.br.amber.jogodastrespistas.enums.ScoreEnum
+import com.br.amber.jogodastrespistas.enums.PointsEnum
 import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
 import com.br.amber.jogodastrespistas.normalize
@@ -33,14 +32,14 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
         }
     }
 
-    /*
-    indexScore será o mesmo valor de room.shownClues
-    */
-    fun addPoints(isOwner: Boolean, indexScore: Int) {
-        val scores = enumValues<ScoreEnum>().toList()
+    fun setScore(isOwner: Boolean, indexPoints: Int, currentPoints: Int, onSuccess: () -> Unit) {
+        val points = enumValues<PointsEnum>().toList()
+        val newScore = currentPoints + points[indexPoints].points
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updatePoints(roomId, isOwner, scores[indexScore].points)
+                repository.setScore(roomId, isOwner, newScore){
+                    onSuccess()
+                }
             }
         }
     }
@@ -114,41 +113,25 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
 
     }
 
-    fun verifyAswer(
+    fun verifyAnswer(
         answer: String,
         room: Room
     ){
-        val wordToVerify: String = room.drawnWords[room.chosenWordIndex].name
-        val indexScore: Int = room.cluesShown
+        val normalizedWordToVerify: String = room.drawnWords[room.chosenWordIndex].name.normalize()
+        val indexPoints: Int = room.cluesShown
         val isOwner: Boolean = room.owner.id == loggedUserId
         val isOwnerTurn: Boolean = room.ownerTurn
         val nextRound: Int = room.round + 1
-        Log.d("DEBUG", "Veficando se $wordToVerify é igual a $answer")
-        if(isAnswerCorrect(wordToVerify, answer)){
-            addPoints(isOwner, indexScore)
-            if(nextRound == Room.NUMBER_OF_ROUNDS){
-                updateStatus(RoomStatusesEnum.FINISHED.name, onSuccess = {})
-            }else{
-                startNewRound(isOwnerTurn, nextRound)
-            }
+        if(isAnswerCorrect(normalizedWordToVerify, answer.normalize())){
+            val currentPoints = if(isOwner) room.owner.score else room.guest.score
+            setScore(isOwner, indexPoints, currentPoints){}
+        }
+    }
 
-        }else{
-                if(room.cluesShown < 2){
-                    changeTurn(
-                        isOwnerTurn,
-                        onSuccess = {
-                            updateCluesShown(room.cluesShown + 1, onSuccess = {})
-                        }
-                    )
-
-                }else{
-                    if(nextRound == Room.NUMBER_OF_ROUNDS){
-                        updateStatus(RoomStatusesEnum.FINISHED.name, onSuccess = {})
-                    }else{
-                        startNewRound(isOwnerTurn, nextRound)
-                    }
-                }
-
+    fun getNextStatus(room: Room): String{
+        return when{
+            room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 -> RoomStatusesEnum.FINISHED.name
+        else -> RoomStatusesEnum.GOT_WRONG_ANSWER.name
         }
     }
 
