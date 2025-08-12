@@ -3,9 +3,11 @@ package com.br.amber.jogodastrespistas.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.br.amber.jogodastrespistas.ui.screens.home.HomeScreen
 import com.br.amber.jogodastrespistas.ui.screens.login.LoginScreen
 import com.br.amber.jogodastrespistas.ui.screens.room.RoomScreen
@@ -47,7 +49,12 @@ fun AppNavHost(
             HomeScreen(navController)
         }
 
-        composable(RoutesEnum.ROOM.route) {
+        composable(
+            route = RoutesEnum.ROOM.route,
+            arguments = listOf(navArgument("roomId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val roomId = backStackEntry.arguments?.getString("roomId")
+
             LaunchedEffect(Unit) {
                 if (!authViewModel.isUserLoggedIn()) {
                     navController.navigate(RoutesEnum.LOGIN.route) {
@@ -55,7 +62,12 @@ fun AppNavHost(
                     }
                 }
             }
-            RoomScreen(navController)
+
+            // Agora RoomScreen recebe o roomId
+            if (roomId != null) {
+                RoomScreen(navController = navController, roomId = roomId)
+            }
         }
+
     }
 }
