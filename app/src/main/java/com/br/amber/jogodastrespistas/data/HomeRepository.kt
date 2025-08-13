@@ -80,7 +80,7 @@ class HomeRepository {
         onError: (Exception) -> Unit
     ) {
         val updates = hashMapOf<String, Any>(
-            "status" to RoomStatusesEnum.PLAYING.name,
+            "status" to RoomStatusesEnum.GUEST_JOINED.name,
             "guest/id" to loggedUserId.toString(),
             "guest/nickName" to loggedUserName,
             "guest/online" to true

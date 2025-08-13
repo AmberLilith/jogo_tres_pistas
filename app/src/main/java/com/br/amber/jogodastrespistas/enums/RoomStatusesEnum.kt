@@ -2,13 +2,15 @@ package com.br.amber.jogodastrespistas.enums
 
 enum class RoomStatusesEnum{
     WAITING_GUEST,
+    GUEST_JOINED,
     PLAYING,
     FINISHED,
-    ABANBDONED,
+    ROUND_FINISHED_WITH_WINNER,
+    ROUND_FINISHED_WITHOUT_WINNER,
+    ABANDONED,
     VERIFYING_ANSWER,
     CHOOSING_WORD,
     GOT_WRONG_ANSWER,
-    GOT_CORRECT_ANSWER,
-    GOT_ROUND_END
+    GOT_CORRECT_ANSWER
 
 }
