@@ -95,8 +95,11 @@ fun RoomContent(
                     val bothPlayersAreOnline = room.owner.online && room.guest.online
 
 
-                    var showChooseWordDialog by remember { mutableStateOf(false) }
-                    var showWaitingWordChoiceDialog by remember { mutableStateOf(false) }
+                    var showChooseWordDialogNextRound by remember { mutableStateOf(false) }
+                    var showWaitingWordChoiceDialogNextRound by remember { mutableStateOf(false) }
+
+                    var showChooseWordDialogNewGame by remember { mutableStateOf(false) }
+                    var showWaitingWordChoiceDialogNewGame by remember { mutableStateOf(false) }
 
                     var showVerifyingAnswerToWhoAnswered by remember { mutableStateOf(false) }
                     var showVerifyingAnswerToWhoWait by remember { mutableStateOf(false) }
@@ -120,11 +123,24 @@ fun RoomContent(
                     LaunchedEffect(room.status) {
                         showDialogOpponentHasLeft = room.status == RoomStatusesEnum.ABANDONED.name && loggedUserIsOnline
 
-                        showVerifyingAnswerToWhoAnswered = room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && loggedUserIsWhoAnswered
+                        if(room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && loggedUserIsWhoAnswered){
+                            showVerifyingAnswerToWhoAnswered = true
+                            roomViewModel.verifyAnswer(text, room){
+                                showVerifyingAnswerToWhoAnswered = false
+                            }
+                        }
+
+
                         showVerifyingAnswerToWhoWait = room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && !loggedUserIsWhoAnswered
 
-                        showGotWrongAnswerToWhoAnswered = room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && loggedUserIsWhoAnswered
+                        if(room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && loggedUserIsWhoAnswered){
+                            showGotWrongAnswerToWhoAnswered = true
+                            roomViewModel.passTurn(room.ownerTurn, room.cluesShown + 1){
+                                showGotWrongAnswerToWhoAnswered = false
+                            }
+                        }
                         showGotWrongAnswerToWhoWait = room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && !loggedUserIsWhoAnswered
+
 
                         showGotCorrectAnswerToWhoAnswered = (room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && loggedUserIsWhoAnswered
                         showGotCorrectAnswerToWhoWait = (room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && !loggedUserIsWhoAnswered
@@ -132,39 +148,34 @@ fun RoomContent(
                         showGotRoundFinishWithWrongAnswerToWhoAnswered = room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name && loggedUserIsWhoAnswered
                         showGotRoundFinishWithWrongAnswerToWhoWait = room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name && !loggedUserIsWhoAnswered
 
-                        showChooseWordDialog = room.status == RoomStatusesEnum.CHOOSING_WORD.name && loggedUserIsWhoAnswered
-                        showWaitingWordChoiceDialog = room.status == RoomStatusesEnum.CHOOSING_WORD.name && !loggedUserIsWhoAnswered
+                        showChooseWordDialogNextRound = room.status == RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name && loggedUserIsWhoAnswered
+                        showWaitingWordChoiceDialogNextRound = room.status == RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name && !loggedUserIsWhoAnswered
 
-                        if(room.status == RoomStatusesEnum.GUEST_JOINED.name){
-                            roomViewModel.startNewGame()
-                        }
+                        showChooseWordDialogNewGame = room.status == RoomStatusesEnum.GUEST_JOINED.name  && loggedUserIsWhoAnswered
+                        showWaitingWordChoiceDialogNewGame = room.status == RoomStatusesEnum.GUEST_JOINED.name && !loggedUserIsWhoAnswered
                     }
                     //***************************Dialogs Verificando resposta***************************
                     DefaultDialog(
                         showDialog = showVerifyingAnswerToWhoAnswered,
-                        "Resposta obtida!",
+                        "Resposta obtida for who answered!",
                         backgroundTransparent = false
                     )
                     {
-
                         LoadingIndicator("Verificando a resposta obtida...")
 
-                        roomViewModel.verifyAnswer(text, room){
-                            showVerifyingAnswerToWhoAnswered = false
-                        }
-
+                            if(room.status == RoomStatusesEnum.PLAYING.name){
+                                showVerifyingAnswerToWhoAnswered = false
+                            }
 
                     }
 
                     DefaultDialog(
                         showDialog = showVerifyingAnswerToWhoWait,
-                        "Resposta obtida!",
+                        "Resposta obtida for who wait!",
                         backgroundTransparent = false
                     )
                     {
-
                         LoadingIndicator("Verificando a resposta obtida...")
-
                     }
                     //*********************************************************************************
 
@@ -183,16 +194,7 @@ fun RoomContent(
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-
                         }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        roomViewModel.passTurn(room.ownerTurn, room.cluesShown + 1){
-                            showGotWrongAnswerToWhoAnswered = false
-                        }
-
-
                     }
 
                     DefaultDialog(
@@ -220,12 +222,13 @@ fun RoomContent(
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-
                         }
 
                         LoadingIndicator("Iniciando uma nova rodada! Será a vez de $opponentName responder...")
 
-                        roomViewModel.startNewRound(room.ownerTurn, room.round + 1)
+                        roomViewModel.setOwnerTurn(!room.ownerTurn){
+                            roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name){}
+                        }
 
 
                     }
@@ -251,7 +254,6 @@ fun RoomContent(
                             )
 
                             LoadingIndicator("A seguir será sua vez de responder!")
-
                         }
                     }
                     //==============================================================================
@@ -264,19 +266,17 @@ fun RoomContent(
                         backgroundTransparent = false
                     )
                     {
-
                         Column {
                             Text(
                                 text = "Você errou a palavra.",
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-
                         }
 
                         LoadingIndicator("Iniciando uma nova rodada! Será a vez de $opponentName responder...")
 
-                        roomViewModel.startNewRound(room.ownerTurn, room.round + 1)
+                        roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name){}
 
 
                     }
@@ -287,7 +287,6 @@ fun RoomContent(
                         backgroundTransparent = false
                     )
                     {
-
                         Column {
                             Text(
                                 text = "$whoAnswered errou a palavra.",
@@ -300,12 +299,125 @@ fun RoomContent(
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-
                             LoadingIndicator("A seguir será sua vez de responder!")
-
                         }
                     }
                     //==============================================================================
+
+
+
+                    //¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬Dialogs Escolher Palavra Proximo Round¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬
+                    DefaultDialog(
+                        showDialog = showChooseWordDialogNextRound,
+                        "Escolha um cartão!",
+                        backgroundTransparent = false
+
+                    )
+                    {
+                        var showProgressbar by remember { mutableStateOf(false) }
+                        if(!showProgressbar){
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                safeRoom.drawnWords.forEachIndexed { index, word ->
+                                    Box(
+                                        modifier = Modifier
+                                            .width(100.dp)
+                                            .height(50.dp)
+                                            .padding(4.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(if (!word.used) Color.Blue else Color.Gray)
+                                            .clickable {
+                                                if (!word.used) {
+                                                    showProgressbar = true
+                                                    roomViewModel.startNewRound(index, 0, 1){}
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if(word.used){
+                                            Text(word.name,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }else{
+                            LoadingIndicator("Carregando dicas...")
+                        }
+                    }
+
+                    DefaultDialog(
+                        showDialog = showWaitingWordChoiceDialogNextRound,
+                        "Palavra sendo escolhida!",
+                        backgroundTransparent = false
+                    )
+                    {
+                        LoadingIndicator("Aguarde escolha da palavra!")
+                    }
+
+                    //¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬
+
+
+                    //¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬Dialogs Escolher Palavra Novo Jogo¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬
+                    DefaultDialog(
+                        showDialog = showChooseWordDialogNewGame,
+                        "Escolha um cartão!",
+                        backgroundTransparent = false
+
+                    )
+                    {
+                        var showProgressbar by remember { mutableStateOf(false) }
+                        if(!showProgressbar){
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+
+                                safeRoom.drawnWords.forEachIndexed { index, word ->
+                                    Box(
+                                        modifier = Modifier
+                                            .width(100.dp)
+                                            .height(50.dp)
+                                            .padding(4.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(if (!word.used) Color.Blue else Color.Gray)
+                                            .clickable {
+                                                if (!word.used) {
+                                                    showProgressbar = true
+                                                    roomViewModel.startNewGame(index, 0, 1){}
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if(word.used){
+                                            Text(word.name,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }else{
+                            LoadingIndicator("Carregando dicas...")
+                        }
+                    }
+
+                    DefaultDialog(
+                        showDialog = showWaitingWordChoiceDialogNewGame,
+                        "Palavra sendo escolhida!",
+                        backgroundTransparent = false
+                    )
+                    {
+                        LoadingIndicator("Aguarde escolha da palavra!")
+                    }
+
+                    //¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬
+
 
                     DefaultDialog(
                         showDialog = showDialogOpponentHasLeft,
@@ -337,22 +449,20 @@ fun RoomContent(
                             horizontalArrangement = Arrangement.End
                         ) {
                             Button(onClick = {
-                                roomViewModel.setStatus(
-                                    RoomStatusesEnum.ABANDONED.name,
+                                roomViewModel.deleteRoom(
                                     onSuccess = {
-                                        roomViewModel.deleteRoom(
-                                            onSuccess = {
-                                                showDialogOpponentHasLeft = false
-                                                navController.popBackStack()
-                                            },
-                                            onFailure = { error ->
-                                                Log.e(
-                                                    "Firebase",
-                                                    "Erro ao deletar a sala: ${error.message}"
-                                                )
-                                            }
+                                        showDialogOpponentHasLeft = false
+                                        navController.popBackStack()
+                                    },
+                                    onFailure = { error ->
+                                        Log.e(
+                                            "Firebase",
+                                            "Erro ao deletar a sala: ${error.message}"
                                         )
-                                    })
+                                        showDialogOpponentHasLeft = false
+                                        navController.popBackStack()
+                                    }
+                                )
                             }
                             ) {
                                 Text("Sair")
@@ -484,65 +594,6 @@ fun RoomContent(
 
                     }
 
-
-                    DefaultDialog(
-                        showDialog = showChooseWordDialog,
-                        "Escolha um cartão!",
-                        backgroundTransparent = false
-
-                    )
-                    {
-                        var showProgressbar by remember { mutableStateOf(false) }
-                        if(!showProgressbar){
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-
-                                safeRoom.drawnWords.forEachIndexed { index, word ->
-                                    Box(
-                                        modifier = Modifier
-                                            .width(100.dp)
-                                            .height(50.dp)
-                                            .padding(4.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(if (!word.used) Color.Blue else Color.Gray)
-                                            .clickable {
-                                                if (!word.used) {
-                                                    showProgressbar = true
-                                                    roomViewModel.setChosenWordIndex(index) {
-                                                        roomViewModel.setCluesShown(0) {
-                                                            roomViewModel.setWordUsed(index) {
-                                                                roomViewModel.setStatus(RoomStatusesEnum.PLAYING.name){}
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        if(word.used){
-                                            Text(word.name,
-                                                color = Color.White
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }else{
-                            LoadingIndicator("Carregando dicas...")
-                        }
-                    }
-
-                    DefaultDialog(
-                        showDialog = showWaitingWordChoiceDialog,
-                        "Palavra sendo escolhida!",
-                        backgroundTransparent = false
-                    )
-                    {
-                        LoadingIndicator("Aguarde escolha da palavra!")
-                    }
 
                     when (safeRoom.status) {
                         RoomStatusesEnum.WAITING_GUEST.name -> {

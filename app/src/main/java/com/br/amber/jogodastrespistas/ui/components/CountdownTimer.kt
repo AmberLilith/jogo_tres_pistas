@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun CountdownTimer(
     start: Int = 5,
+    showCounter: Boolean = false,
+    counterColor: Color = Color.Black,
     onFinish: () -> Unit = {}
 ) {
     var timeLeft by remember { mutableIntStateOf(start) }
@@ -32,12 +34,14 @@ fun CountdownTimer(
         }
     }
 
-    Text(
-        text = "$timeLeft",
-        fontSize = 48.sp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        color = Color.Red
-    )
+    if(showCounter){
+        Text(
+            text = "$timeLeft",
+            fontSize = 48.sp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            color = counterColor
+        )
+    }
 }

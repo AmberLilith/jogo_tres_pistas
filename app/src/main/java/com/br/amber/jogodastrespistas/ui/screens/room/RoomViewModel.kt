@@ -138,30 +138,34 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
             room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 -> RoomStatusesEnum.FINISHED.name
             room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && isAnswerCorrect -> RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name
             room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && !isAnswerCorrect -> RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name
-            room.cluesShown == 2 && isAnswerCorrect -> RoomStatusesEnum.GOT_CORRECT_ANSWER.name
+            isAnswerCorrect -> RoomStatusesEnum.GOT_CORRECT_ANSWER.name
         else -> RoomStatusesEnum.GOT_WRONG_ANSWER.name
         }
     }
 
 
-    fun startNewGame(){
-        setOwnerTurn(true){
-            setChosenWordIndex(-1){
-                setCluesShown(-1){
-                    setRound(0) {
-                        setStatus(RoomStatusesEnum.CHOOSING_WORD.name){}
+    fun startNewGame(nextWordIndex: Int, nextClueShown: Int, nextRound: Int, onSuccess: () -> Unit){
+        setChosenWordIndex(nextWordIndex){
+            setCluesShown(nextClueShown){
+                setWordUsed(nextWordIndex){
+                    setRound(nextRound) {
+                        setStatus(RoomStatusesEnum.PLAYING.name){
+                            onSuccess()
+                        }
                     }
                 }
             }
         }
     }
 
-    fun startNewRound(isOwnerTurn: Boolean, nextRound: Int){
-        setOwnerTurn(!isOwnerTurn){
-            setChosenWordIndex(-1){
-                setCluesShown(-1){
+    fun startNewRound(nextWordIndex: Int, nextClueShown: Int, nextRound: Int, onSuccess: () -> Unit){
+        setChosenWordIndex(nextWordIndex){
+            setCluesShown(nextClueShown){
+                setWordUsed(nextWordIndex){
                     setRound(nextRound) {
-                        setStatus(RoomStatusesEnum.CHOOSING_WORD.name){}
+                        setStatus(RoomStatusesEnum.PLAYING.name){
+                            onSuccess()
+                        }
                     }
                 }
             }
