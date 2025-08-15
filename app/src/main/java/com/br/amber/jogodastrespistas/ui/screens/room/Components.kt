@@ -39,6 +39,10 @@ import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
 import com.br.amber.jogodastrespistas.ui.components.dialogs.DefaultDialog
 import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -125,6 +129,7 @@ fun RoomContent(
 
                         if(room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && loggedUserIsWhoAnswered){
                             showVerifyingAnswerToWhoAnswered = true
+                            delay(Room.DIALOGS_DELAY)
                             roomViewModel.verifyAnswer(text, room){
                                 showVerifyingAnswerToWhoAnswered = false
                             }
@@ -135,6 +140,7 @@ fun RoomContent(
 
                         if(room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && loggedUserIsWhoAnswered){
                             showGotWrongAnswerToWhoAnswered = true
+                            delay(Room.DIALOGS_DELAY)
                             roomViewModel.passTurn(room.ownerTurn, room.cluesShown + 1){
                                 showGotWrongAnswerToWhoAnswered = false
                             }
@@ -144,6 +150,7 @@ fun RoomContent(
 
                         if((room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && loggedUserIsWhoAnswered){
                             showGotCorrectAnswerToWhoAnswered = true
+                            delay(Room.DIALOGS_DELAY)
                             roomViewModel.setOwnerTurn(!room.ownerTurn){
                                 roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name){
                                     showGotCorrectAnswerToWhoAnswered = false
@@ -170,7 +177,7 @@ fun RoomContent(
                     {
                         LoadingIndicator("Verificando a resposta obtida...")
 
-                            if(room.status == RoomStatusesEnum.PLAYING.name){
+                            if(room.status != RoomStatusesEnum.VERIFYING_ANSWER.name){
                                 showVerifyingAnswerToWhoAnswered = false
                             }
 
@@ -479,6 +486,7 @@ fun RoomContent(
                         backgroundTransparent = false
                     )
                     {
+                        var showProgressLeaving by remember { mutableStateOf(false) }
                         val winner = when {
                             room.owner.score > room.guest.score -> if (roomViewModel.loggedUserId == room.owner.id) "Você venceu!" else "${room.owner.nickName} venceu!"
                             room.guest.score > room.owner.score -> if (roomViewModel.loggedUserId == room.guest.id) "Você venceu!" else "${room.guest.nickName} venceu!"
@@ -496,10 +504,14 @@ fun RoomContent(
                                 modifier = Modifier.padding(bottom = 12.dp)
                             )
 
-                            Text(
-                                text = if (bothPlayersAreOnline) "Deseja jogar novamente?" else "Não é possível jogar novamente, pois seu adversário saiu do jogo!",
-                                color = if (bothPlayersAreOnline) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
-                            )
+                            if(showProgressLeaving){
+                                LoadingIndicator("Voltando para a tela inicial...")
+                            }else{
+                                Text(
+                                    text = if (bothPlayersAreOnline) "Deseja jogar novamente?" else "Não é possível jogar novamente, pois seu adversário saiu do jogo!",
+                                    color = if (bothPlayersAreOnline) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
+                                )
+                            }
 
                         }
 
@@ -519,9 +531,13 @@ fun RoomContent(
                             Button(
                                 onClick = {
                                     if (bothPlayersAreOnline) {
-                                        roomViewModel.setStatus(RoomStatusesEnum.ABANDONED.name){
-                                            showDialogGameOver = false
-                                            navController.popBackStack()
+                                        showProgressLeaving = true
+                                        CoroutineScope(Dispatchers.Main).launch { //Usar com CoroutineScope(Dispatchers.Main).launch quando nao estiver dentro de uma coroutine como LaunchedEffect. caso contrário, basta usar delay()
+                                            delay(2000)
+                                            roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false){
+                                                showDialogGameOver = false
+                                                navController.popBackStack()
+                                            }
                                         }
                                     } else {
                                                 roomViewModel.deleteRoom(
