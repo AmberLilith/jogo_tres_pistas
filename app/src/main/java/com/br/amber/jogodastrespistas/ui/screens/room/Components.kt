@@ -37,6 +37,7 @@ import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.enums.PointsEnum
 import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
+import com.br.amber.jogodastrespistas.ui.components.CountdownTimer
 import com.br.amber.jogodastrespistas.ui.components.dialogs.DefaultDialog
 import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
 import kotlinx.coroutines.CoroutineScope
@@ -98,6 +99,8 @@ fun RoomContent(
                     val opponentName = if (isLoggedUserOwner) safeRoom.guest.nickName else safeRoom.owner.nickName
                     val bothPlayersAreOnline = room.owner.online && room.guest.online
 
+                    var showStartingNewGameDialog by remember { mutableStateOf(false) }
+                    var showWaitingStartNewGameDialog by remember { mutableStateOf(false) }
 
                     var showChooseWordDialogNextRound by remember { mutableStateOf(false) }
                     var showWaitingWordChoiceDialogNextRound by remember { mutableStateOf(false) }
@@ -125,7 +128,15 @@ fun RoomContent(
 
 
                     LaunchedEffect(room.status) {
+
                         showDialogOpponentHasLeft = room.status == RoomStatusesEnum.ABANDONED.name && loggedUserIsOnline
+
+                        if(room.status == RoomStatusesEnum.GUEST_JOINED.name && loggedUserIsWhoAnswered){
+                            showStartingNewGameDialog = true
+                            delay(Room.DIALOGS_DELAY)
+                            roomViewModel.setOwnerTurn(!room.ownerTurn){} //Isso é para servir tanto para inicio do primeiro jogo quanto um novo jogo. isso garente que o proximo jogador sempre vai ser diferente do último que jogou
+                        }
+                        showWaitingStartNewGameDialog = room.status == RoomStatusesEnum.GUEST_JOINED.name && !loggedUserIsWhoAnswered
 
                         if(room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && loggedUserIsWhoAnswered){
                             showVerifyingAnswerToWhoAnswered = true
@@ -134,9 +145,8 @@ fun RoomContent(
                                 showVerifyingAnswerToWhoAnswered = false
                             }
                         }
-
-
                         showVerifyingAnswerToWhoWait = room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && !loggedUserIsWhoAnswered
+
 
                         if(room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && loggedUserIsWhoAnswered){
                             showGotWrongAnswerToWhoAnswered = true
@@ -165,9 +175,46 @@ fun RoomContent(
                         showChooseWordDialogNextRound = room.status == RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name && loggedUserIsWhoAnswered
                         showWaitingWordChoiceDialogNextRound = room.status == RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name && !loggedUserIsWhoAnswered
 
-                        showChooseWordDialogNewGame = room.status == RoomStatusesEnum.GUEST_JOINED.name  && loggedUserIsWhoAnswered
-                        showWaitingWordChoiceDialogNewGame = room.status == RoomStatusesEnum.GUEST_JOINED.name && !loggedUserIsWhoAnswered
+                        showChooseWordDialogNewGame = room.status == RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name  && loggedUserIsWhoAnswered
+                        showWaitingWordChoiceDialogNewGame = room.status == RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name && !loggedUserIsWhoAnswered
                     }
+                    //***************************Dialogs Verificando resposta***************************
+                    DefaultDialog(
+                        showDialog = showStartingNewGameDialog,
+                        "Iniciando novo jogo!",
+                        backgroundTransparent = false
+                    )
+                    {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Um novo jogo vai começar após a contagem regressiva!",style = MaterialTheme.typography.bodyMedium)
+                            CountdownTimer((Room.DIALOGS_DELAY / 1000).toInt(), Color.Red) {
+                                roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name){
+                                    showStartingNewGameDialog = false
+                                }
+                            }
+                        }
+
+
+                    }
+
+                    DefaultDialog(
+                        showDialog = showWaitingStartNewGameDialog,
+                        "Iniciando novo jogo!",
+                        backgroundTransparent = false
+                    )
+                    {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Um novo jogo vai começar após a contagem regressiva!",style = MaterialTheme.typography.bodyMedium)
+                            CountdownTimer((Room.DIALOGS_DELAY / 1000).toInt(),  Color.Red) {
+                                showWaitingStartNewGameDialog = false
+                            }
+                        }
+                    }
+                    //*********************************************************************************
+
+
+
+
                     //***************************Dialogs Verificando resposta***************************
                     DefaultDialog(
                         showDialog = showVerifyingAnswerToWhoAnswered,
