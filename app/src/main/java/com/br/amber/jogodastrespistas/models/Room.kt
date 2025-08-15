@@ -16,7 +16,7 @@ data class Room(
     constructor() : this(id = "", owner = Player())
 
     companion object{
-        const val NUMBER_OF_ROUNDS = 1
+        const val NUMBER_OF_ROUNDS = 3
         const val DIALOGS_DELAY = 5000L
     }
 }
