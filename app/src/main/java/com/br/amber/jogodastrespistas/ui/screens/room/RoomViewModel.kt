@@ -133,15 +133,52 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
         }
     }
 
-    fun getNextStatus(room: Room, isAnswerCorrect: Boolean): String{
+    /*fun getNextStatus(room: Room, isAnswerCorrect: Boolean): String{
         return when{
-            room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 -> RoomStatusesEnum.FINISHED.name
+            room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && isAnswerCorrect -> RoomStatusesEnum.FINISHED.name
+            room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && !isAnswerCorrect -> RoomStatusesEnum.FINISHED.name
             room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && isAnswerCorrect -> RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name
             room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && !isAnswerCorrect -> RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name
             isAnswerCorrect -> RoomStatusesEnum.GOT_CORRECT_ANSWER.name
         else -> RoomStatusesEnum.GOT_WRONG_ANSWER.name
         }
+    }*/
+
+    fun getNextStatus(room: Room, isAnswerCorrect: Boolean): String {
+
+        return when {
+            // Último round, todas as dicas já mostradas
+            room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && isAnswerCorrect ->
+                RoomStatusesEnum.FINISHED.name
+
+            room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && !isAnswerCorrect ->
+                RoomStatusesEnum.FINISHED.name
+
+            // Último round, ainda há dicas para mostrar
+            room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown < 2 && isAnswerCorrect ->
+                RoomStatusesEnum.GOT_CORRECT_ANSWER.name
+
+            room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown < 2 && !isAnswerCorrect ->
+                RoomStatusesEnum.GOT_WRONG_ANSWER.name
+
+            // Rodadas intermediárias, todas as dicas já mostradas
+            room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && isAnswerCorrect ->
+                RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name
+
+            room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && !isAnswerCorrect ->
+                RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name
+
+            // Rodadas intermediárias, ainda há dicas para mostrar
+            room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown < 2 && isAnswerCorrect ->
+                RoomStatusesEnum.GOT_CORRECT_ANSWER.name
+
+            room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown < 2 && !isAnswerCorrect ->
+                RoomStatusesEnum.GOT_WRONG_ANSWER.name
+
+            else -> RoomStatusesEnum.GOT_WRONG_ANSWER.name // fallback (nunca deveria cair aqui)
+        }
     }
+
 
 
     fun startNewGame(nextWordIndex: Int, nextClueShown: Int, nextRound: Int, onSuccess: () -> Unit){

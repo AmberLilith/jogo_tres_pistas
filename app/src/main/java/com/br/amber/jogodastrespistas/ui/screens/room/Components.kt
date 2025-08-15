@@ -142,7 +142,14 @@ fun RoomContent(
                         showGotWrongAnswerToWhoWait = room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && !loggedUserIsWhoAnswered
 
 
-                        showGotCorrectAnswerToWhoAnswered = (room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && loggedUserIsWhoAnswered
+                        if((room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && loggedUserIsWhoAnswered){
+                            showGotCorrectAnswerToWhoAnswered = true
+                            roomViewModel.setOwnerTurn(!room.ownerTurn){
+                                roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name){
+                                    showGotCorrectAnswerToWhoAnswered = false
+                                }
+                            }
+                        }
                         showGotCorrectAnswerToWhoWait = (room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && !loggedUserIsWhoAnswered
 
                         showGotRoundFinishWithWrongAnswerToWhoAnswered = room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name && loggedUserIsWhoAnswered
@@ -225,11 +232,6 @@ fun RoomContent(
                         }
 
                         LoadingIndicator("Iniciando uma nova rodada! Será a vez de $opponentName responder...")
-
-                        roomViewModel.setOwnerTurn(!room.ownerTurn){
-                            roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name){}
-                        }
-
 
                     }
 
@@ -332,7 +334,7 @@ fun RoomContent(
                                             .clickable {
                                                 if (!word.used) {
                                                     showProgressbar = true
-                                                    roomViewModel.startNewRound(index, 0, 1){}
+                                                    roomViewModel.startNewRound(index, 0, room.round + 1){}
                                                 }
                                             },
                                         contentAlignment = Alignment.Center
@@ -648,7 +650,7 @@ fun StartGame(
     }
 
     Text(
-        "Rodada: ${safeRoom.round + 1}",
+        "Rodada: ${safeRoom.round}",
         style = MaterialTheme.typography.bodyLarge
     )
 
