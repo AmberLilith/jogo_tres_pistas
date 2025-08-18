@@ -117,17 +117,20 @@ fun RoomContent(
                     var showGotCorrectAnswerToWhoAnswered by remember { mutableStateOf(false) }
                     var showGotCorrectAnswerToWhoWait by remember { mutableStateOf(false) }
 
-                    var showGotNoAnswerToWhoAnswered by remember { mutableStateOf(false) }
+                    var showGotNoAnswerToWhoseIsTurn by remember { mutableStateOf(false) }
                     var showGotNoAnswerToWhoWait by remember { mutableStateOf(false) }
+
+                    var showRoundFinishedWithoutAnswerToWhoseIsTurn by remember { mutableStateOf(false) }
+                    var showRoundFinishedWithoutAnswerToWhoWait by remember { mutableStateOf(false) }
 
                     var showGotRoundFinishWithWrongAnswerToWhoAnswered by remember { mutableStateOf(false) }
                     var showGotRoundFinishWithWrongAnswerToWhoWait by remember { mutableStateOf(false) }
 
-                    val loggedUserIsWhoAnswered = (room.owner.id == roomViewModel.loggedUserId && room.ownerTurn) || (room.guest.id == roomViewModel.loggedUserId && !room.ownerTurn)
+                    val isLoggedUserTurn = (room.owner.id == roomViewModel.loggedUserId && room.ownerTurn) || (room.guest.id == roomViewModel.loggedUserId && !room.ownerTurn)
 
                     val loggedUserIsOnline = (room.owner.id == roomViewModel.loggedUserId && room.owner.online) || (room.guest.id == roomViewModel.loggedUserId && room.guest.online)
 
-                    val whoAnswered = if (loggedUserIsWhoAnswered) loggedUserName else opponentName
+                    val whoAnswered = if (isLoggedUserTurn) loggedUserName else opponentName
 
 
                     LaunchedEffect(room.status) {
@@ -138,40 +141,40 @@ fun RoomContent(
 
 
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
-                        if(room.status == RoomStatusesEnum.GUEST_JOINED.name && loggedUserIsWhoAnswered){
+                        if(room.status == RoomStatusesEnum.GUEST_JOINED.name && isLoggedUserTurn){
                             showStartingNewGameDialog = true
                             delay(Room.DIALOGS_MILLISECONDS_DELAY)
                             roomViewModel.setOwnerTurn(!room.ownerTurn){} //Isso é para servir tanto para inicio do primeiro jogo quanto um novo jogo. isso garente que o proximo jogador sempre vai ser diferente do último que jogou
                         }
-                        showWaitingStartNewGameDialog = room.status == RoomStatusesEnum.GUEST_JOINED.name && !loggedUserIsWhoAnswered
+                        showWaitingStartNewGameDialog = room.status == RoomStatusesEnum.GUEST_JOINED.name && !isLoggedUserTurn
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
-                        if(room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && loggedUserIsWhoAnswered){
+                        if(room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && isLoggedUserTurn){
                             showVerifyingAnswerToWhoAnswered = true
                             delay(Room.DIALOGS_MILLISECONDS_DELAY)
                             roomViewModel.verifyAnswer(text, room){
                                 showVerifyingAnswerToWhoAnswered = false
                             }
                         }
-                        showVerifyingAnswerToWhoWait = room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && !loggedUserIsWhoAnswered
+                        showVerifyingAnswerToWhoWait = room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && !isLoggedUserTurn
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
-                        if(room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && loggedUserIsWhoAnswered){
+                        if(room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && isLoggedUserTurn){
                             showGotWrongAnswerToWhoAnswered = true
                             delay(Room.DIALOGS_MILLISECONDS_DELAY)
                             roomViewModel.passTurn(room.ownerTurn, room.cluesShown + 1){
                                 showGotWrongAnswerToWhoAnswered = false
                             }
                         }
-                        showGotWrongAnswerToWhoWait = room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && !loggedUserIsWhoAnswered
+                        showGotWrongAnswerToWhoWait = room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && !isLoggedUserTurn
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
-                        if((room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && loggedUserIsWhoAnswered){
+                        if((room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && isLoggedUserTurn){
                             showGotCorrectAnswerToWhoAnswered = true
                             delay(Room.DIALOGS_MILLISECONDS_DELAY)
                             roomViewModel.setOwnerTurn(!room.ownerTurn){
@@ -180,40 +183,58 @@ fun RoomContent(
                                 }
                             }
                         }
-                        showGotCorrectAnswerToWhoWait = (room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && !loggedUserIsWhoAnswered
+                        showGotCorrectAnswerToWhoWait = (room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && !isLoggedUserTurn
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
-                        if((room.status == RoomStatusesEnum.GOT_NO_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER.name) && loggedUserIsWhoAnswered){
-                            showGotNoAnswerToWhoAnswered = true
+                        if((room.status == RoomStatusesEnum.GOT_NO_ANSWER_OWNER.name) && isLoggedUserTurn){
+                            showGotNoAnswerToWhoseIsTurn = true
+                            delay(Room.DIALOGS_MILLISECONDS_DELAY)
+                            roomViewModel.passTurn(room.ownerTurn, room.cluesShown + 1){
+                                showGotNoAnswerToWhoseIsTurn = false
+                            }
+                        }
+                        /*TODO verificar essa regra pois em alguns momentos ownerTurn está modudando e
+                        enquanto status permanece == GOT_NO_ANSWER_OWNER, essa tela acaba aparecendo para o outro jogador mesmo que por alguns milissegundos*/
+                        showGotNoAnswerToWhoWait = (room.status == RoomStatusesEnum.GOT_NO_ANSWER_OWNER.name) && !isLoggedUserTurn
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
+                        if((room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER_FROM_OWNER.name) && isLoggedUserTurn){
+                            showRoundFinishedWithoutAnswerToWhoseIsTurn = true
                             delay(Room.DIALOGS_MILLISECONDS_DELAY)
                             roomViewModel.setOwnerTurn(!room.ownerTurn){
                                 roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name){
-                                    showGotNoAnswerToWhoAnswered = false
+                                    showRoundFinishedWithoutAnswerToWhoseIsTurn = false
                                 }
                             }
                         }
-                        showGotNoAnswerToWhoWait = (room.status == RoomStatusesEnum.GOT_NO_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER.name) && !loggedUserIsWhoAnswered
+                        /*TODO verificar essa regra pois em alguns momentos ownerTurn está modudando e
+                        enquanto status permanece == GOT_NO_ANSWER_OWNER, essa tela acaba aparecendo para o outro jogador mesmo que por alguns milissegundos*/
+                        showRoundFinishedWithoutAnswerToWhoWait = (room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER_FROM_OWNER.name) && !isLoggedUserTurn
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
-                        showGotRoundFinishWithWrongAnswerToWhoAnswered = room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name && loggedUserIsWhoAnswered
-                        showGotRoundFinishWithWrongAnswerToWhoWait = room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name && !loggedUserIsWhoAnswered
+                        showGotRoundFinishWithWrongAnswerToWhoAnswered = room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name && isLoggedUserTurn
+                        showGotRoundFinishWithWrongAnswerToWhoWait = room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name && !isLoggedUserTurn
 
-                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
-
-
-                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
-                        showChooseWordDialogNextRound = room.status == RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name && loggedUserIsWhoAnswered
-                        showWaitingWordChoiceDialogNextRound = room.status == RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name && !loggedUserIsWhoAnswered
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
-                        showChooseWordDialogNewGame = room.status == RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name  && loggedUserIsWhoAnswered
-                        showWaitingWordChoiceDialogNewGame = room.status == RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name && !loggedUserIsWhoAnswered
+                        showChooseWordDialogNextRound = room.status == RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name && isLoggedUserTurn
+                        showWaitingWordChoiceDialogNextRound = room.status == RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name && !isLoggedUserTurn
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
+                        showChooseWordDialogNewGame = room.status == RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name  && isLoggedUserTurn
+                        showWaitingWordChoiceDialogNewGame = room.status == RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name && !isLoggedUserTurn
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+                        showDialogGameOver = room.status == RoomStatusesEnum.FINISHED.name && loggedUserIsOnline
                     }
 
 
@@ -355,7 +376,7 @@ fun RoomContent(
 
                     //------------------------Dialogs Sem Resposta----------------------------------
                     DefaultDialog(
-                        showDialog = showGotNoAnswerToWhoAnswered,
+                        showDialog = showGotNoAnswerToWhoseIsTurn || showRoundFinishedWithoutAnswerToWhoseIsTurn,
                         "Sem resposta!",
                         backgroundTransparent = false
                     )
@@ -371,7 +392,7 @@ fun RoomContent(
                     }
 
                     DefaultDialog(
-                        showDialog = showGotNoAnswerToWhoWait,
+                        showDialog = showGotNoAnswerToWhoWait || showRoundFinishedWithoutAnswerToWhoWait,
                         "Sem resposta!",
                         backgroundTransparent = false
                     )
@@ -743,11 +764,11 @@ fun RoomContent(
                             )
                         }
 
-                        RoomStatusesEnum.FINISHED.name,-> {
+                        /*RoomStatusesEnum.FINISHED.name -> {
                             if (bothPlayersAreOnline) {
                                 showDialogGameOver = true
                             }
-                        }
+                        }*/
                     }
                 }
             }
