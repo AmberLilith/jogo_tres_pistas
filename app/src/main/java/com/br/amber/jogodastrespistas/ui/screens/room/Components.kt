@@ -117,6 +117,9 @@ fun RoomContent(
                     var showGotCorrectAnswerToWhoAnswered by remember { mutableStateOf(false) }
                     var showGotCorrectAnswerToWhoWait by remember { mutableStateOf(false) }
 
+                    var showGotNoAnswerToWhoAnswered by remember { mutableStateOf(false) }
+                    var showGotNoAnswerToWhoWait by remember { mutableStateOf(false) }
+
                     var showGotRoundFinishWithWrongAnswerToWhoAnswered by remember { mutableStateOf(false) }
                     var showGotRoundFinishWithWrongAnswerToWhoWait by remember { mutableStateOf(false) }
 
@@ -131,36 +134,46 @@ fun RoomContent(
 
                         showDialogOpponentHasLeft = room.status == RoomStatusesEnum.ABANDONED.name && loggedUserIsOnline
 
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
                         if(room.status == RoomStatusesEnum.GUEST_JOINED.name && loggedUserIsWhoAnswered){
                             showStartingNewGameDialog = true
-                            delay(Room.DIALOGS_DELAY)
+                            delay(Room.DIALOGS_MILLISECONDS_DELAY)
                             roomViewModel.setOwnerTurn(!room.ownerTurn){} //Isso é para servir tanto para inicio do primeiro jogo quanto um novo jogo. isso garente que o proximo jogador sempre vai ser diferente do último que jogou
                         }
                         showWaitingStartNewGameDialog = room.status == RoomStatusesEnum.GUEST_JOINED.name && !loggedUserIsWhoAnswered
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
+
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
                         if(room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && loggedUserIsWhoAnswered){
                             showVerifyingAnswerToWhoAnswered = true
-                            delay(Room.DIALOGS_DELAY)
+                            delay(Room.DIALOGS_MILLISECONDS_DELAY)
                             roomViewModel.verifyAnswer(text, room){
                                 showVerifyingAnswerToWhoAnswered = false
                             }
                         }
                         showVerifyingAnswerToWhoWait = room.status == RoomStatusesEnum.VERIFYING_ANSWER.name && !loggedUserIsWhoAnswered
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
                         if(room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && loggedUserIsWhoAnswered){
                             showGotWrongAnswerToWhoAnswered = true
-                            delay(Room.DIALOGS_DELAY)
+                            delay(Room.DIALOGS_MILLISECONDS_DELAY)
                             roomViewModel.passTurn(room.ownerTurn, room.cluesShown + 1){
                                 showGotWrongAnswerToWhoAnswered = false
                             }
                         }
                         showGotWrongAnswerToWhoWait = room.status == RoomStatusesEnum.GOT_WRONG_ANSWER.name && !loggedUserIsWhoAnswered
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
-
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
                         if((room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && loggedUserIsWhoAnswered){
                             showGotCorrectAnswerToWhoAnswered = true
-                            delay(Room.DIALOGS_DELAY)
+                            delay(Room.DIALOGS_MILLISECONDS_DELAY)
                             roomViewModel.setOwnerTurn(!room.ownerTurn){
                                 roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name){
                                     showGotCorrectAnswerToWhoAnswered = false
@@ -168,16 +181,42 @@ fun RoomContent(
                             }
                         }
                         showGotCorrectAnswerToWhoWait = (room.status == RoomStatusesEnum.GOT_CORRECT_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name) && !loggedUserIsWhoAnswered
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
+
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
+                        if((room.status == RoomStatusesEnum.GOT_NO_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER.name) && loggedUserIsWhoAnswered){
+                            showGotNoAnswerToWhoAnswered = true
+                            delay(Room.DIALOGS_MILLISECONDS_DELAY)
+                            roomViewModel.setOwnerTurn(!room.ownerTurn){
+                                roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name){
+                                    showGotNoAnswerToWhoAnswered = false
+                                }
+                            }
+                        }
+                        showGotNoAnswerToWhoWait = (room.status == RoomStatusesEnum.GOT_NO_ANSWER.name || room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER.name) && !loggedUserIsWhoAnswered
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
                         showGotRoundFinishWithWrongAnswerToWhoAnswered = room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name && loggedUserIsWhoAnswered
                         showGotRoundFinishWithWrongAnswerToWhoWait = room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name && !loggedUserIsWhoAnswered
 
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
                         showChooseWordDialogNextRound = room.status == RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name && loggedUserIsWhoAnswered
                         showWaitingWordChoiceDialogNextRound = room.status == RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name && !loggedUserIsWhoAnswered
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
+
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
                         showChooseWordDialogNewGame = room.status == RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name  && loggedUserIsWhoAnswered
                         showWaitingWordChoiceDialogNewGame = room.status == RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name && !loggedUserIsWhoAnswered
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
                     }
+
+
                     //***************************Dialogs Verificando resposta***************************
                     DefaultDialog(
                         showDialog = showStartingNewGameDialog,
@@ -187,7 +226,7 @@ fun RoomContent(
                     {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Um novo jogo vai começar após a contagem regressiva!",style = MaterialTheme.typography.bodyMedium)
-                            CountdownTimer((Room.DIALOGS_DELAY / 1000).toInt(), Color.Red) {
+                            CountdownTimer((Room.DIALOGS_MILLISECONDS_DELAY / 1000).toInt(), Color.Red) {
                                 roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name){
                                     showStartingNewGameDialog = false
                                 }
@@ -205,7 +244,7 @@ fun RoomContent(
                     {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Um novo jogo vai começar após a contagem regressiva!",style = MaterialTheme.typography.bodyMedium)
-                            CountdownTimer((Room.DIALOGS_DELAY / 1000).toInt(),  Color.Red) {
+                            CountdownTimer((Room.DIALOGS_MILLISECONDS_DELAY / 1000).toInt(),  Color.Red) {
                                 showWaitingStartNewGameDialog = false
                             }
                         }
@@ -313,6 +352,33 @@ fun RoomContent(
                         }
                     }
                     //==============================================================================
+
+                    //------------------------Dialogs Sem Resposta----------------------------------
+                    DefaultDialog(
+                        showDialog = showGotNoAnswerToWhoAnswered,
+                        "Sem resposta!",
+                        backgroundTransparent = false
+                    )
+                    {
+
+                        Column {
+                            Text(
+                                text = "Você não respondeu a tempo!",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+                    }
+
+                    DefaultDialog(
+                        showDialog = showGotNoAnswerToWhoWait,
+                        "Sem resposta!",
+                        backgroundTransparent = false
+                    )
+                    {
+                        LoadingIndicator("$whoAnswered não respondeu a tempo. A seguir será sua vez de responder!")
+                    }
+                    //------------------------------------------------------------------------------------
 
 
                     //==========================Dialogs Final Round Com Resposta Errada==========================
@@ -579,13 +645,13 @@ fun RoomContent(
                                 onClick = {
                                     if (bothPlayersAreOnline) {
                                         showProgressLeaving = true
-                                        CoroutineScope(Dispatchers.Main).launch { //Usar com CoroutineScope(Dispatchers.Main).launch quando nao estiver dentro de uma coroutine como LaunchedEffect. caso contrário, basta usar delay()
-                                            delay(2000)
-                                            roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false){
+                                        roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
+                                                CoroutineScope(Dispatchers.Main).launch{  //Usar com CoroutineScope(Dispatchers.Main).launch quando nao estiver dentro de uma coroutine como LaunchedEffect. caso contrário, basta usar delay()
+                                                delay(2000)
                                                 showDialogGameOver = false
                                                 navController.popBackStack()
                                             }
-                                        }
+                                            }
                                     } else {
                                                 roomViewModel.deleteRoom(
                                                     onSuccess = {
@@ -765,8 +831,6 @@ fun Clues(
     updateShowClues: () -> Unit
 )
 {
-
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -800,6 +864,19 @@ fun Clues(
                 (roomViewModel.loggedUserId == room.owner.id && room.ownerTurn) ||
                 (roomViewModel.loggedUserId == room.guest.id && !room.ownerTurn)
             ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CountdownTimer(
+                        Room.ANSWER_TIMEOUT_SECONDS,
+                        Color.Red,
+                        fontSize = 12,
+                        extraText = " segundos para responder..."
+                    ) {
+                        roomViewModel.verifyTimeOut(room) {}
+                    }
+                }
 
                 TextField(
                     value = text,
@@ -819,7 +896,17 @@ fun Clues(
                 }
 
             }else{
-                LoadingIndicator("Aguardando a resposta de $opponentName...")
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CountdownTimer(
+                        Room.ANSWER_TIMEOUT_SECONDS,
+                        Color.Red,
+                        fontSize = 12,
+                        extraText = " segundos para $opponentName responder..."
+                    ) {}
+                }
             }
 
         }

@@ -133,6 +133,17 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
         }
     }
 
+    fun verifyTimeOut(room: Room, onSuccess: () -> Unit){
+        val newStatus = when{
+            room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 -> RoomStatusesEnum.FINISHED.name
+            room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 -> RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER.name
+            else -> RoomStatusesEnum.GOT_NO_ANSWER.name
+        }
+        setStatus(newStatus){
+            onSuccess()
+        }
+    }
+
     fun getNextStatus(room: Room, isAnswerCorrect: Boolean): String{
         return when{
             room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && !isAnswerCorrect -> RoomStatusesEnum.FINISHED.name
