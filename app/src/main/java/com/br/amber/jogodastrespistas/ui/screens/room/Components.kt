@@ -126,13 +126,14 @@ fun RoomContent(
                     var showGotRoundFinishWithWrongAnswerToWhoAnswered by remember { mutableStateOf(false) }
                     var showGotRoundFinishWithWrongAnswerToWhoWait by remember { mutableStateOf(false) }
 
+                    var showDialogPlayAgain by remember { mutableStateOf(false) }
+                    var showDialogWaitingPlayAgainAcceptance by remember { mutableStateOf(false) }
+
                     val isLoggedUserTurn = (room.owner.id == roomViewModel.loggedUserId && room.ownerTurn) || (room.guest.id == roomViewModel.loggedUserId && !room.ownerTurn)
 
                     val loggedUserIsOnline = (room.owner.id == roomViewModel.loggedUserId && room.owner.online) || (room.guest.id == roomViewModel.loggedUserId && room.guest.online)
 
                     val whoAnswered = if (isLoggedUserTurn) loggedUserName else opponentName
-
-
                     LaunchedEffect(room.status) {
 
                         showDialogOpponentHasLeft = room.status == RoomStatusesEnum.ABANDONED.name && loggedUserIsOnline
@@ -202,7 +203,7 @@ fun RoomContent(
 
 
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
-                        if((room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER_FROM_OWNER.name) && isLoggedUserTurn){
+                        if((room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER.name) && isLoggedUserTurn){
                             showRoundFinishedWithoutAnswerToWhoseIsTurn = true
                             delay(Room.DIALOGS_MILLISECONDS_DELAY)
                             roomViewModel.setOwnerTurn(!room.ownerTurn){
@@ -213,7 +214,7 @@ fun RoomContent(
                         }
                         /*TODO verificar essa regra pois em alguns momentos ownerTurn está modudando e
                         enquanto status permanece == GOT_NO_ANSWER_OWNER, essa tela acaba aparecendo para o outro jogador mesmo que por alguns milissegundos*/
-                        showRoundFinishedWithoutAnswerToWhoWait = (room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER_FROM_OWNER.name) && !isLoggedUserTurn
+                        showRoundFinishedWithoutAnswerToWhoWait = (room.status == RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER.name) && !isLoggedUserTurn
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
@@ -232,6 +233,27 @@ fun RoomContent(
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
                         showChooseWordDialogNewGame = room.status == RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name  && isLoggedUserTurn
                         showWaitingWordChoiceDialogNewGame = room.status == RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name && !isLoggedUserTurn
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+
+                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
+                        if(room.status == RoomStatusesEnum.OWNER_WANTS_PLAY_AGAIN.name){
+                            if(isLoggedUserOwner){
+                                showDialogWaitingPlayAgainAcceptance = true
+                            }else{
+                                showDialogPlayAgain = true
+                            }
+                        }
+
+                        if(room.status == RoomStatusesEnum.GUEST_WANTS_PLAY_AGAIN.name){
+                            if(isLoggedUserGuest){
+                                showDialogWaitingPlayAgainAcceptance = true
+                            }else{
+                                showDialogPlayAgain = true
+                            }
+                        }
+
+
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
                         showDialogGameOver = room.status == RoomStatusesEnum.FINISHED.name && loggedUserIsOnline
@@ -561,6 +583,128 @@ fun RoomContent(
 
                     //¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬
 
+                    //+++++++++++++++++++++++++Dialogs Jogar Novamente+++++++++++++++++++++++++++++++++++
+                    DefaultDialog(
+                        showDialog = showDialogPlayAgain,
+                        "Jogar Novamente!",
+                        backgroundTransparent = false
+                    )
+                    {
+                        var showProgressWaitingAcceptance by remember { mutableStateOf(false) }
+
+                        Column {
+
+                            if(showProgressWaitingAcceptance){
+                                LoadingIndicator("Gerando novo jogo...")
+                            }else{
+                                Text(
+                                    text = if (bothPlayersAreOnline) "Seu adversário deseja jogar novamente!" else "Não é possível jogar novamente, pois seu adversário saiu do jogo!",
+                                    color = if (bothPlayersAreOnline) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                            }
+
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Button(
+                                onClick = {},
+                                enabled = bothPlayersAreOnline
+                            ) {
+                                Text("Aceitar")
+                            }
+
+                            Button(
+                                onClick = {
+                                    if (bothPlayersAreOnline) {
+                                        showProgressWaitingAcceptance = true
+                                        roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
+                                            CoroutineScope(Dispatchers.Main).launch{  //Usar com CoroutineScope(Dispatchers.Main).launch quando nao estiver dentro de uma coroutine como LaunchedEffect. caso contrário, basta usar delay()
+                                                delay(2000)
+                                                showDialogGameOver = false
+                                                navController.popBackStack()
+                                            }
+                                        }
+                                    } else {
+                                        roomViewModel.deleteRoom(
+                                            onSuccess = {
+                                                showDialogGameOver = false
+                                                navController.popBackStack()
+                                            },
+                                            onFailure = { error ->
+                                                Log.e(
+                                                    "Firebase",
+                                                    "Erro ao deletar a sala: ${error.message}"
+                                                )
+                                                showDialogGameOver = false
+                                                navController.popBackStack()
+                                            }
+                                        )
+                                    }
+                                }
+                            ) {
+                                Text("Sair")
+
+                            }
+                        }
+                    }
+
+                    DefaultDialog(
+                        showDialog = showDialogWaitingPlayAgainAcceptance,
+                        "Jogar Novamente!",
+                        backgroundTransparent = false
+                    )
+                    {
+                        LoadingIndicator(if(bothPlayersAreOnline) "Aguardando seu adiversário aceitar novo jogo..." else "Saindo da sala. Aguarde...")
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Button(
+                                onClick = {
+                                    if (bothPlayersAreOnline) {
+                                        roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
+                                            CoroutineScope(Dispatchers.Main).launch{  //Usar com CoroutineScope(Dispatchers.Main).launch quando nao estiver dentro de uma coroutine como LaunchedEffect. caso contrário, basta usar delay()
+                                                delay(2000)
+                                                showDialogGameOver = false
+                                                navController.popBackStack()
+                                            }
+                                        }
+                                    } else {
+                                        roomViewModel.deleteRoom(
+                                            onSuccess = {
+                                                showDialogGameOver = false
+                                                navController.popBackStack()
+                                            },
+                                            onFailure = { error ->
+                                                Log.e(
+                                                    "Firebase",
+                                                    "Erro ao deletar a sala: ${error.message}"
+                                                )
+                                                showDialogGameOver = false
+                                                navController.popBackStack()
+                                            }
+                                        )
+                                    }
+                                },
+                                enabled = bothPlayersAreOnline
+                            ) {
+                                Text("Sair")
+
+                            }
+                        }
+                    }
+                    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
                     DefaultDialog(
                         showDialog = showDialogOpponentHasLeft,
@@ -614,6 +758,7 @@ fun RoomContent(
 
                     }
 
+                    //+++++++++++++++++++++++++Dialog Fim do Jogo+++++++++++++++++++++++++++++++++++++++
                     DefaultDialog(
                         showDialog = showDialogGameOver,
                         "Jogo Finalizado!",
@@ -656,7 +801,12 @@ fun RoomContent(
                             horizontalArrangement = Arrangement.End
                         ) {
                             Button(
-                                onClick = {},
+                                onClick = {
+                                    val status = if(isLoggedUserOwner) RoomStatusesEnum.OWNER_WANTS_PLAY_AGAIN.name else RoomStatusesEnum.GUEST_WANTS_PLAY_AGAIN.name
+                                    roomViewModel.setStatus(status){
+                                        showDialogGameOver = false
+                                    }
+                                },
                                 enabled = bothPlayersAreOnline
                             ) {
                                 Text("Nova Partida")
@@ -698,6 +848,7 @@ fun RoomContent(
 
 
                     }
+                    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                     DefaultDialog(
                         showDialog = showDialogConfirmExit,
