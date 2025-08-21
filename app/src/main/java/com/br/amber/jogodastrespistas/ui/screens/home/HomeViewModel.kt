@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class HomeViewModel : ViewModel() {
-
+//TODO só exibir botao criar sala se estiver conectado a internet (pq mesmo sem internet o app continua logado?? ver isso também)
     private val repository = HomeRepository()
     private val _waitingRooms = MutableStateFlow<List<Room>>(emptyList())
     val waitingRooms: StateFlow<List<Room>> = _waitingRooms

@@ -26,9 +26,13 @@ import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.navigation.RoutesEnum
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.br.amber.jogodastrespistas.ui.components.dialogs.DefaultDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +77,8 @@ fun HomeScreen(
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 title = {
-                    Text("Bem-vindo ao Jogo das Três Pistas!")
+                    Text(text = "Jogo das Três Pistas!",
+                        style = MaterialTheme.typography.titleLarge)
                 }
             )
         }
