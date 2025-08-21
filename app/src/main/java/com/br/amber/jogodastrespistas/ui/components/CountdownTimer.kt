@@ -1,5 +1,6 @@
 package com.br.amber.jogodastrespistas.ui.components
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,29 +16,76 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun CountdownTimer(
     start: Int = 5,
+    counterColor: Color = Color.Black,
+    fontSize: Int = 48,
+    extraText: String = "",
     onFinish: () -> Unit = {}
 ) {
     var timeLeft by remember { mutableIntStateOf(start) }
+    var visible by remember { mutableStateOf(true) }
 
-    LaunchedEffect(timeLeft) {
-        if (timeLeft > 0) {
-            kotlinx.coroutines.delay(1000L)
+    LaunchedEffect(start) {
+        timeLeft = start
+        visible = true
+        while (timeLeft > 0) {
+            delay(1000L)
             timeLeft--
-        } else {
-            onFinish()
         }
+        visible = false
+        onFinish()
     }
 
-    Text(
-        text = "$timeLeft",
-        fontSize = 48.sp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        color = Color.Red
-    )
+    // converte segundos -> hh:mm:ss
+    val hours = timeLeft / 3600
+    val minutes = (timeLeft % 3600) / 60
+    val seconds = timeLeft % 60
+    val formatted = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+
+    if (visible) {
+        Text(
+            text = "$formatted $extraText",
+            fontSize = fontSize.sp,
+            color = counterColor
+        )
+    }
 }
+
+
+/*@Composable
+fun CountdownTimer(
+    start: Int = 5,
+    counterColor: Color = Color.Black,
+    fontSize: Int = 48,
+    extraText: String = "",
+    onFinish: () -> Unit = {}
+) {
+    var timeLeft by remember { mutableIntStateOf(start) }
+    var visible by remember { mutableStateOf(true) }
+
+    LaunchedEffect(start) {
+        timeLeft = start
+        visible = true
+        while (timeLeft > 0) {
+            delay(1000L)
+            timeLeft--
+        }
+        visible = false
+        onFinish()
+    }
+
+    if (visible) {
+        Text(
+            text = "$timeLeft $extraText",
+            fontSize = fontSize.sp,
+            *//*modifier = Modifier
+                .padding(16.dp),*//*
+            color = counterColor
+        )
+    }
+}*/

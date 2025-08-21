@@ -30,11 +30,13 @@ class HomeRepository {
         getRandomWords { words ->
             val roomRef = roomsRef.push()
             val roomId = roomRef.key ?: return@getRandomWords onError(Exception("Erro ao gerar ID"))
+            val wordsNames = words.map { it.name }
 
             val room = Room(
                 id = roomId,
                 owner = Player(id = loggedUserId, nickName = loggedUserName, online = true),
-                drawnWords = words
+                drawnWords = words,
+                usedWords = wordsNames.toMutableList()
             )
 
             roomRef.setValue(room)
@@ -54,7 +56,7 @@ class HomeRepository {
     }
 
     fun listenWaitingRooms(onUpdate: (List<Room>) -> Unit, onError: (Exception) -> Unit) {
-        roomsRef.orderByChild("status").equalTo(RoomStatusesEnum.WAITING.name)
+        roomsRef.orderByChild("status").equalTo(RoomStatusesEnum.WAITING_GUEST.name)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val rooms = snapshot.children.mapNotNull { roomSnapshot ->
@@ -80,7 +82,7 @@ class HomeRepository {
         onError: (Exception) -> Unit
     ) {
         val updates = hashMapOf<String, Any>(
-            "status" to RoomStatusesEnum.PLAYING.name,
+            "status" to RoomStatusesEnum.GUEST_JOINED.name,
             "guest/id" to loggedUserId.toString(),
             "guest/nickName" to loggedUserName,
             "guest/online" to true

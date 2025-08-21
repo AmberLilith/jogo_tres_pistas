@@ -26,33 +26,37 @@ import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.navigation.RoutesEnum
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.br.amber.jogodastrespistas.ui.components.dialogs.DefaultDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    viewModel: HomeViewModel = viewModel()
+    homeViewModel: HomeViewModel = viewModel()
 ) {
-    val waitingRooms by viewModel.waitingRooms.collectAsState(initial = emptyList())
+    val waitingRooms by homeViewModel.waitingRooms.collectAsState(initial = emptyList())
 
-    val createdRoomId by viewModel.createdRoomId.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    val createdRoomId by homeViewModel.createdRoomId.collectAsState()
+    val errorMessage by homeViewModel.errorMessage.collectAsState()
 
     val context = LocalContext.current
 
 
     // Inicia a escuta das salas esperando atualização
     LaunchedEffect(Unit) {
-        viewModel.observeWaitingRooms()
+        homeViewModel.observeWaitingRooms()
     }
 
     LaunchedEffect(createdRoomId) {
         if (!createdRoomId.isNullOrEmpty()) {
             navController.navigate(RoutesEnum.roomWithId(createdRoomId!!))
-            viewModel.clearRoomId()
+            homeViewModel.clearRoomId()
         }
     }
 
@@ -61,7 +65,7 @@ fun HomeScreen(
             Toast
                 .makeText(context, errorMessage, Toast.LENGTH_SHORT)
                 .show()
-            viewModel.clearErrorMessage()
+            homeViewModel.clearErrorMessage()
         }
     }
 
@@ -73,7 +77,8 @@ fun HomeScreen(
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 title = {
-                    Text("Bem-vindo ao Jogo das Três Pistas!")
+                    Text(text = "Jogo das Três Pistas!",
+                        style = MaterialTheme.typography.titleLarge)
                 }
             )
         }
@@ -89,7 +94,7 @@ fun HomeScreen(
 
 
             Button(
-                onClick = { viewModel.createRoom() },
+                onClick = { homeViewModel.createRoom() },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Criar Sala")
@@ -122,10 +127,11 @@ fun HomeScreen(
                         ) {
                             Button(
                                 onClick = {
-                                    viewModel.joinRoomAsGuest(// Só navega para a tela da sala quando os dados de guest forem atualizados
-                                        room.id,
+                                    homeViewModel.joinRoomAsGuest(// Só navega para a tela da sala quando os dados de guest forem atualizados
+                                        room.id
+                                    ){
                                         navController.navigate(RoutesEnum.roomWithId(room.id))
-                                    )
+                                    }
                                 }
                             ) {
                                 Text(

@@ -30,31 +30,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    val database = Firebase.database
-    val myRef = database.getReference("teste")
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text(text = "Hello $name!")
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            myRef.setValue("valor de teste")
-        }) {
-            Text("Salvar no Firebase")
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    JogoDasTrêsPistasTheme {
-        Greeting("Android")
-    }
-}

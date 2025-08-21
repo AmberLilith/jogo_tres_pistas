@@ -4,9 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.br.amber.jogodastrespistas.data.RoomRepository
-import com.br.amber.jogodastrespistas.enums.ScoreEnum
+import com.br.amber.jogodastrespistas.enums.PointsEnum
 import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
+import com.br.amber.jogodastrespistas.models.Word
 import com.br.amber.jogodastrespistas.normalize
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,6 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
     val loggedUserId = auth.currentUser?.uid
 
     private var currentRoomId: String? = null
-
     fun init(roomId: String) {
         if (currentRoomId == roomId) return
 
@@ -33,63 +33,83 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
         }
     }
 
-    /*
-    indexScore será o mesmo valor de room.shownClues
-    */
-    fun addPoints(isOwner: Boolean, indexScore: Int) {
-        val scores = enumValues<ScoreEnum>().toList()
+    fun setScore(isOwner: Boolean, indexPoints: Int, currentScore: Int, onSuccess: () -> Unit) {
+        val points = enumValues<PointsEnum>().toList()
+        val newScore = currentScore + points[indexPoints].points
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updatePoints(roomId, isOwner, scores[indexScore].points)
+                repository.setScore(roomId, isOwner, newScore){
+                    onSuccess()
+                }
             }
         }
     }
 
-    fun changeTurn(isOwnerTurn: Boolean, onSuccess: () -> Unit) {
+    fun setOwnerTurn(isOwnerTurn: Boolean, onSuccess: () -> Unit) {
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updateTurn(roomId, isOwnerTurn, onSuccess)
+                repository.setTurn(roomId, isOwnerTurn, onSuccess)
             }
         }
     }
 
-    fun updateStatus(status: String, onSuccess: () -> Unit) {
+    fun setStatus(status: String, onSuccess: () -> Unit) {
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updateStatus(roomId, status, onSuccess)
+                repository.setStatus(roomId, status, onSuccess)
             }
         }
     }
 
-    fun updateChosenWordIndex(wordIndex: Int, onSuccess: () -> Unit){
+    fun setChosenWordIndex(wordIndex: Int, onSuccess: () -> Unit){
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updateChosenWordIndex(roomId, wordIndex, onSuccess)
+                repository.setChosenWordIndex(roomId, wordIndex, onSuccess)
             }
         }
     }
 
-    fun updateCluesShown(count: Int, onSuccess: () -> Unit) {
+    fun setCluesShown(nextCluesShown: Int, onSuccess: () -> Unit) {
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updateCluesShown(roomId, count, onSuccess)
+                repository.setCluesShown(roomId, nextCluesShown, onSuccess)
             }
         }
     }
 
-    fun updateWordUsed(wordIndex: Int, onSuccess: () -> Unit){
+    fun setWordUsed(wordIndex: Int, onSuccess: () -> Unit){
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updateWordUsed(roomId, wordIndex, onSuccess)
+                repository.setWordUsed(roomId, wordIndex, onSuccess)
             }
         }
     }
 
-    fun advanceRound(nextRound: Int, onSuccess: () -> Unit) {
+    fun setRound(nextRound: Int, onSuccess: () -> Unit) {
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
                 _roomState.value?.let { currentRoom ->
-                    repository.updateRound(roomId, nextRound, onSuccess)
+                    repository.setRound(roomId, nextRound, onSuccess)
+                }
+            }
+        }
+    }
+
+    fun setDrawnWords(words: List<Word>, onSuccess: () -> Unit) {
+        currentRoomId?.let { roomId ->
+            viewModelScope.launch {
+                _roomState.value?.let { currentRoom ->
+                    repository.setDrawnWords(roomId, words, onSuccess)
+                }
+            }
+        }
+    }
+
+    fun appendUsedWords(currentUsedWords: List<String>, newUsedWords: List<String>, onSuccess: () -> Unit){
+        currentRoomId?.let { roomId ->
+            viewModelScope.launch {
+                _roomState.value?.let { currentRoom ->
+                    repository.appendUsedWords(roomId,currentUsedWords, newUsedWords, onSuccess)
                 }
             }
         }
@@ -98,7 +118,7 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
     fun setPlayerOnlineStatus(isOwner: Boolean, isOnline: Boolean, onSuccess: () -> Unit) {
         currentRoomId?.let { roomId ->
             viewModelScope.launch {
-                repository.updatePlayerOnlineStatus(roomId, isOwner, isOnline, onSuccess)
+                repository.setPlayerOnlineStatus(roomId, isOwner, isOnline, onSuccess)
             }
         }
     }
@@ -109,54 +129,86 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
     ): Boolean{
         val normalizedWordToVerify = wordToVerify.normalize()
         val normalizedAnswer = answer.normalize()
-        println("normalizedWordToVerify = $normalizedWordToVerify e normalizedAnswer = $normalizedAnswer")
         return normalizedWordToVerify == normalizedAnswer
 
     }
 
-    fun verifyAswer(
+    fun verifyAnswer(
         answer: String,
-        room: Room
+        room: Room,
+        onSuccess: () -> Unit
     ){
-        val wordToVerify: String = room.drawnWords[room.chosenWordIndex].name
-        val indexScore: Int = room.cluesShown
+        val normalizedWordToVerify: String = room.drawnWords[room.chosenWordIndex].name.normalize()
+        val indexPoints: Int = room.cluesShown
         val isOwner: Boolean = room.owner.id == loggedUserId
-        val isOwnerTurn: Boolean = room.ownerTurn
-        val nextRound: Int = room.round + 1
-        Log.d("DEBUG", "Veficando se $wordToVerify é igual a $answer")
-        if(isAnswerCorrect(wordToVerify, answer)){
-            addPoints(isOwner, indexScore)
-            if(nextRound == Room.NUMBER_OF_ROUNDS){
-                updateStatus(RoomStatusesEnum.FINISHED.name, onSuccess = {})
-            }else{
-                startNewRound(isOwnerTurn, nextRound)
+        Log.d("RoomViewModel", "Verificando resposta normalizedWordToVerify = $normalizedWordToVerify e  answer.normalize() = ${answer.normalize()}")
+        if(isAnswerCorrect(normalizedWordToVerify, answer.normalize())){
+            val currentScore = if(isOwner) room.owner.score else room.guest.score
+            setScore(isOwner, indexPoints, currentScore){
+                val nextStatus = getNextStatus(room, true)
+                setStatus(nextStatus){}
             }
-
         }else{
-                if(room.cluesShown < 2){
-                    changeTurn(
-                        isOwnerTurn,
-                        onSuccess = {
-                            updateCluesShown(room.cluesShown + 1, onSuccess = {})
-                        }
-                    )
-
-                }else{
-                    if(nextRound == Room.NUMBER_OF_ROUNDS){
-                        updateStatus(RoomStatusesEnum.FINISHED.name, onSuccess = {})
-                    }else{
-                        startNewRound(isOwnerTurn, nextRound)
-                    }
-                }
-
+        val nextStatus = getNextStatus(room, false)
+        setStatus(nextStatus){}
         }
     }
 
-    fun startNewRound(isOwnerTurn: Boolean, nextRound: Int){
-        changeTurn(isOwnerTurn){
-            updateChosenWordIndex(-1){
-                updateCluesShown(-1){
-                    advanceRound(nextRound) {}
+    fun verifyTimeOut(room: Room, onSuccess: () -> Unit){
+        val newStatus = when{
+            room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 -> RoomStatusesEnum.FINISHED.name
+            room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 -> RoomStatusesEnum.ROUND_FINISHED_WITHOUT_ANSWER.name
+            else -> RoomStatusesEnum.GOT_NO_ANSWER_OWNER.name
+        }
+        setStatus(newStatus){
+            onSuccess()
+        }
+    }
+
+    fun getNextStatus(room: Room, isAnswerCorrect: Boolean): String{
+        return when{
+            room.round == Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && !isAnswerCorrect -> RoomStatusesEnum.FINISHED.name
+            room.round == Room.NUMBER_OF_ROUNDS && isAnswerCorrect -> RoomStatusesEnum.FINISHED.name
+            room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && isAnswerCorrect -> RoomStatusesEnum.ROUND_FINISHED_WITH_WINNER.name
+            room.round < Room.NUMBER_OF_ROUNDS && room.cluesShown == 2 && !isAnswerCorrect -> RoomStatusesEnum.ROUND_FINISHED_WITHOUT_WINNER.name
+            isAnswerCorrect -> RoomStatusesEnum.GOT_CORRECT_ANSWER.name
+        else -> RoomStatusesEnum.GOT_WRONG_ANSWER.name
+        }
+    }
+
+    fun startNewGame(nextWordIndex: Int, nextClueShown: Int, nextRound: Int, onSuccess: () -> Unit){
+        setChosenWordIndex(nextWordIndex){
+            setCluesShown(nextClueShown){
+                setWordUsed(nextWordIndex){
+                    setRound(nextRound) {
+                        setStatus(RoomStatusesEnum.PLAYING.name){
+                            onSuccess()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun startNewRound(nextWordIndex: Int, nextClueShown: Int, nextRound: Int, onSuccess: () -> Unit){
+        setChosenWordIndex(nextWordIndex){
+            setCluesShown(nextClueShown){
+                setWordUsed(nextWordIndex){
+                    setRound(nextRound) {
+                        setStatus(RoomStatusesEnum.PLAYING.name){
+                            onSuccess()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun passTurn(isOwnerTurn: Boolean, nextCluesShown: Int, onSuccess: () -> Unit){
+        setOwnerTurn(!isOwnerTurn){
+            setCluesShown(nextCluesShown){
+                setStatus(RoomStatusesEnum.PLAYING.name){
+                    onSuccess()
                 }
             }
         }
@@ -167,6 +219,12 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
             viewModelScope.launch {
                 repository.deleteRoom(roomId, onSuccess, onFailure)
             }
+        }
+    }
+
+    fun getRandomSetOfWords(wordsUsed: List<String>, callback: (List<Word>) -> Unit) {
+        repository.getRandomSetOfWords(wordsUsed = wordsUsed){ words ->
+            callback(words)
         }
     }
 }
