@@ -2,6 +2,7 @@ package com.br.amber.jogodastrespistas.data
 
 import android.util.Log
 import com.br.amber.jogodastrespistas.models.Room
+import com.br.amber.jogodastrespistas.models.Word
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -89,6 +90,24 @@ class RoomRepository {
         }
     }
 
+    fun setDrawnWords(roomId: String, words: List<Word>, onSuccess: () -> Unit) {
+        roomsRef.child(roomId).child("drawnWords").setValue(words).addOnSuccessListener {
+            Log.d("Firebase", "dransWords atualizado com novas palavras com sucesso")
+            onSuccess()
+        }.addOnFailureListener { error ->
+            Log.e("Firebase", "Erro ao atualizar dransWords com novas palavras: ${error.message}")
+        }
+    }
+    fun appendUsedWords(roomId: String, currentUsedWords: List<String>, newUsedWords: List<String>, onSuccess: () -> Unit){
+        val wordsToupdate = currentUsedWords.plus(newUsedWords)
+        roomsRef.child(roomId).child("usedWords").setValue(wordsToupdate).addOnSuccessListener {
+            Log.d("Firebase", "usedWords atualizado com sucesso")
+            onSuccess()
+        }.addOnFailureListener { error ->
+            Log.e("Firebase", "Erro ao atualizar usedWords: ${error.message}")
+        }
+    }
+
     fun setPlayerOnlineStatus(roomId: String, isOwner: Boolean, online: Boolean, onSuccess: () -> Unit) {
         val path = if (isOwner) "owner/online" else "guest/online"
         roomsRef.child(roomId).child(path).setValue(online).addOnSuccessListener {
@@ -119,6 +138,29 @@ class RoomRepository {
                 Log.e("Firebase", "Erro ao remover sala $roomId: ${error.message}")
                 onFailure(error)
             }
+    }
+
+    fun getRandomSetOfWords(limit: Int = Room.NUMBER_OF_ROUNDS, wordsUsed: List<String>, callback: (List<Word>) -> Unit) {
+        val wordsRef = FirebaseDatabase.getInstance().getReference("words")
+        wordsRef.get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                val wordList = snapshot.children.mapNotNull { childSnapshot ->
+                    childSnapshot.getValue(Word::class.java)
+                }
+                    .filterNot { word ->
+                        word.name in wordsUsed
+                    }
+                    .shuffled()
+                    .take(limit)
+
+                callback(wordList)
+            } else {
+                callback(emptyList())
+            }
+        }.addOnFailureListener { exception ->
+            Log.e("Firebase", "Erro ao obter palavras: ${exception.message}")
+            callback(emptyList())
+        }
     }
 
 }

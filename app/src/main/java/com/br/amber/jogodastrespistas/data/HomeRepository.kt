@@ -30,11 +30,13 @@ class HomeRepository {
         getRandomWords { words ->
             val roomRef = roomsRef.push()
             val roomId = roomRef.key ?: return@getRandomWords onError(Exception("Erro ao gerar ID"))
+            val wordsNames = words.map { it.name }
 
             val room = Room(
                 id = roomId,
                 owner = Player(id = loggedUserId, nickName = loggedUserName, online = true),
-                drawnWords = words
+                drawnWords = words,
+                usedWords = wordsNames.toMutableList()
             )
 
             roomRef.setValue(room)

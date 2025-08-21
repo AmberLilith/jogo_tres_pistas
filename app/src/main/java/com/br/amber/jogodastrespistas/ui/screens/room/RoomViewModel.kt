@@ -7,6 +7,7 @@ import com.br.amber.jogodastrespistas.data.RoomRepository
 import com.br.amber.jogodastrespistas.enums.PointsEnum
 import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
+import com.br.amber.jogodastrespistas.models.Word
 import com.br.amber.jogodastrespistas.normalize
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -89,6 +90,26 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
             viewModelScope.launch {
                 _roomState.value?.let { currentRoom ->
                     repository.setRound(roomId, nextRound, onSuccess)
+                }
+            }
+        }
+    }
+
+    fun setDrawnWords(words: List<Word>, onSuccess: () -> Unit) {
+        currentRoomId?.let { roomId ->
+            viewModelScope.launch {
+                _roomState.value?.let { currentRoom ->
+                    repository.setDrawnWords(roomId, words, onSuccess)
+                }
+            }
+        }
+    }
+
+    fun appendUsedWords(currentUsedWords: List<String>, newUsedWords: List<String>, onSuccess: () -> Unit){
+        currentRoomId?.let { roomId ->
+            viewModelScope.launch {
+                _roomState.value?.let { currentRoom ->
+                    repository.appendUsedWords(roomId,currentUsedWords, newUsedWords, onSuccess)
                 }
             }
         }
@@ -198,6 +219,12 @@ class RoomViewModel(private val repository: RoomRepository) : ViewModel() {
             viewModelScope.launch {
                 repository.deleteRoom(roomId, onSuccess, onFailure)
             }
+        }
+    }
+
+    fun getRandomSetOfWords(wordsUsed: List<String>, callback: (List<Word>) -> Unit) {
+        repository.getRandomSetOfWords(wordsUsed = wordsUsed){ words ->
+            callback(words)
         }
     }
 }

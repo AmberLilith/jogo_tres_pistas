@@ -11,14 +11,15 @@ data class Room(
     var chosenWordIndex: Int = -1,
     var cluesShown: Int = -1,
     var round: Int = 0,
-    val drawnWords: List<Word> = emptyList()
+    val drawnWords: List<Word> = emptyList(),
+    val usedWords: MutableList<String> = mutableListOf()
 ) {
     constructor() : this(id = "", owner = Player())
 
     companion object{
-        const val NUMBER_OF_ROUNDS = 1
+        const val NUMBER_OF_ROUNDS = 2
         const val DIALOGS_MILLISECONDS_DELAY = 5000L
 
-        const val ANSWER_TIMEOUT_SECONDS = 5
+        const val ANSWER_TIMEOUT_SECONDS = 30
     }
 }
