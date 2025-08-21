@@ -5,7 +5,7 @@ import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
 data class Room(
     val id: String = "",
     val owner: Player = Player(),
-    val guest: Player = Player(id = "guest", online = false),
+    val guest: Player = Player(id = "", online = false),
     var ownerTurn: Boolean = false,
     var status: String = RoomStatusesEnum.WAITING_GUEST.name,
     var chosenWordIndex: Int = -1,

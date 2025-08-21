@@ -54,12 +54,12 @@ class HomeViewModel : ViewModel() {
 
     fun joinRoomAsGuest(
         roomId: String,
-        callback: Unit
+        onSuccess: () -> Unit
     ) {
         repository.joinRoomAsGuest(
             roomId = roomId,
             onSuccess = {
-                callback
+                onSuccess()
             },
             onError = { error ->
                 // Mostrar mensagem de erro

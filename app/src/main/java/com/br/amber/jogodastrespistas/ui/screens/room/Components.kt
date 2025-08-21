@@ -86,7 +86,7 @@ fun RoomContent(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Sair")
+                        Text("Sair")//TODO configurar para quando owner aguardar guest, se sair, tem que excluir a sala
 
                     }
                 }
@@ -98,6 +98,10 @@ fun RoomContent(
                     val loggedUserName = if (isLoggedUserOwner) safeRoom.owner.nickName else safeRoom.guest.nickName
                     val opponentName = if (isLoggedUserOwner) safeRoom.guest.nickName else safeRoom.owner.nickName
                     val bothPlayersAreOnline = room.owner.online && room.guest.online
+                    val isLoggedUserTurn = (room.owner.id == roomViewModel.loggedUserId && room.ownerTurn) || (room.guest.id == roomViewModel.loggedUserId && !room.ownerTurn)
+                    val loggedUserIsOnline = (room.owner.id == roomViewModel.loggedUserId && room.owner.online) || (room.guest.id == roomViewModel.loggedUserId && room.guest.online)
+
+                    val whoAnswered = if (isLoggedUserTurn) loggedUserName else opponentName
 
                     var showStartingNewGameDialog by remember { mutableStateOf(false) }
                     var showWaitingStartNewGameDialog by remember { mutableStateOf(false) }
@@ -129,18 +133,12 @@ fun RoomContent(
                     var showDialogPlayAgain by remember { mutableStateOf(false) }
                     var showDialogWaitingPlayAgainAcceptance by remember { mutableStateOf(false) }
 
-                    val isLoggedUserTurn = (room.owner.id == roomViewModel.loggedUserId && room.ownerTurn) || (room.guest.id == roomViewModel.loggedUserId && !room.ownerTurn)
+                    LaunchedEffect(room.owner.online, room.guest.online) {
+                        showDialogOpponentHasLeft = (isLoggedUserOwner && !room.guest.online && room.guest.id.isNotBlank()) || (isLoggedUserGuest && !room.owner.online)
+                    }
 
-                    val loggedUserIsOnline = (room.owner.id == roomViewModel.loggedUserId && room.owner.online) || (room.guest.id == roomViewModel.loggedUserId && room.guest.online)
 
-                    val whoAnswered = if (isLoggedUserTurn) loggedUserName else opponentName
                     LaunchedEffect(room.status) {
-
-                        showDialogOpponentHasLeft = room.status == RoomStatusesEnum.ABANDONED.name && loggedUserIsOnline
-
-                        /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
-
-
                         /*----------------------------------------------------------------------------------------------------------------------------------------------------------*/
                         if((room.status == RoomStatusesEnum.GUEST_JOINED.name || room.status == RoomStatusesEnum.STARTING_NEW_GAME.name) && isLoggedUserTurn){
                             showStartingNewGameDialog = true
@@ -911,10 +909,8 @@ fun RoomContent(
 
                             Button(onClick = {
                                 roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false){
-                                    roomViewModel.setStatus(RoomStatusesEnum.ABANDONED.name){
-                                        navController.popBackStack()
-                                        showDialogConfirmExit = false
-                                    }
+                                    navController.popBackStack()
+                                    showDialogConfirmExit = false
                                 }
 
 

@@ -34,25 +34,25 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    viewModel: HomeViewModel = viewModel()
+    homeViewModel: HomeViewModel = viewModel()
 ) {
-    val waitingRooms by viewModel.waitingRooms.collectAsState(initial = emptyList())
+    val waitingRooms by homeViewModel.waitingRooms.collectAsState(initial = emptyList())
 
-    val createdRoomId by viewModel.createdRoomId.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    val createdRoomId by homeViewModel.createdRoomId.collectAsState()
+    val errorMessage by homeViewModel.errorMessage.collectAsState()
 
     val context = LocalContext.current
 
 
     // Inicia a escuta das salas esperando atualização
     LaunchedEffect(Unit) {
-        viewModel.observeWaitingRooms()
+        homeViewModel.observeWaitingRooms()
     }
 
     LaunchedEffect(createdRoomId) {
         if (!createdRoomId.isNullOrEmpty()) {
             navController.navigate(RoutesEnum.roomWithId(createdRoomId!!))
-            viewModel.clearRoomId()
+            homeViewModel.clearRoomId()
         }
     }
 
@@ -61,7 +61,7 @@ fun HomeScreen(
             Toast
                 .makeText(context, errorMessage, Toast.LENGTH_SHORT)
                 .show()
-            viewModel.clearErrorMessage()
+            homeViewModel.clearErrorMessage()
         }
     }
 
@@ -89,7 +89,7 @@ fun HomeScreen(
 
 
             Button(
-                onClick = { viewModel.createRoom() },
+                onClick = { homeViewModel.createRoom() },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Criar Sala")
@@ -122,10 +122,11 @@ fun HomeScreen(
                         ) {
                             Button(
                                 onClick = {
-                                    viewModel.joinRoomAsGuest(// Só navega para a tela da sala quando os dados de guest forem atualizados
-                                        room.id,
+                                    homeViewModel.joinRoomAsGuest(// Só navega para a tela da sala quando os dados de guest forem atualizados
+                                        room.id
+                                    ){
                                         navController.navigate(RoutesEnum.roomWithId(room.id))
-                                    )
+                                    }
                                 }
                             ) {
                                 Text(
