@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -31,12 +33,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.enums.PointsEnum
 import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
+import com.br.amber.jogodastrespistas.models.Word
 import com.br.amber.jogodastrespistas.ui.components.CountdownTimer
 import com.br.amber.jogodastrespistas.ui.components.dialogs.DefaultDialog
 import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
@@ -50,7 +55,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun RoomContent(
     room: Room?,
-    innerPadding: PaddingValues,
     navController: NavHostController,
     roomViewModel: RoomViewModel
 )
@@ -66,7 +70,6 @@ fun RoomContent(
                 "Erro ao carregar a sala",
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
                     .padding(16.dp)
             )
         }
@@ -75,7 +78,6 @@ fun RoomContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
                     .padding(16.dp)
             ) {
                 var showDialogConfirmExit by remember { mutableStateOf(false) }
@@ -280,16 +282,12 @@ fun RoomContent(
                         backgroundTransparent = false
                     )
                     {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Um novo jogo vai começar após a contagem regressiva!",style = MaterialTheme.typography.bodyMedium)
-                            CountdownTimer((Room.DIALOGS_MILLISECONDS_DELAY / 1000).toInt(), Color.Red) {
-                                roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name){
-                                    showStartingNewGameDialog = false
-                                }
+                        Text("Um novo jogo vai começar após a contagem regressiva!",style = MaterialTheme.typography.bodyMedium)
+                        CountdownTimer((Room.DIALOGS_MILLISECONDS_DELAY / 1000).toInt(), Color.Red) {
+                            roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name){
+                                showStartingNewGameDialog = false
                             }
                         }
-
-
                     }
 
                     DefaultDialog(
@@ -298,11 +296,9 @@ fun RoomContent(
                         backgroundTransparent = false
                     )
                     {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Um novo jogo vai começar após a contagem regressiva!",style = MaterialTheme.typography.bodyMedium)
-                            CountdownTimer((Room.DIALOGS_MILLISECONDS_DELAY / 1000).toInt(),  Color.Red) {
-                                showWaitingStartNewGameDialog = false
-                            }
+                        Text("Um novo jogo vai começar após a contagem regressiva!",style = MaterialTheme.typography.bodyMedium)
+                        CountdownTimer((Room.DIALOGS_MILLISECONDS_DELAY / 1000).toInt(),  Color.Red) {
+                            showWaitingStartNewGameDialog = false
                         }
                     }
                     //*********************************************************************************
@@ -500,26 +496,8 @@ fun RoomContent(
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 safeRoom.drawnWords.forEachIndexed { index, word ->
-                                    Box(
-                                        modifier = Modifier
-                                            .width(100.dp)
-                                            .height(50.dp)
-                                            .padding(4.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(if (!word.used) WordCard else Color.Gray)
-                                            .clickable {
-                                                if (!word.used) {
-                                                    showProgressbar = true
-                                                    roomViewModel.startNewRound(index, 0, room.round + 1){}
-                                                }
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        if(word.used){
-                                            Text(word.name,
-                                                color = Color.White
-                                            )
-                                        }
+                                    WordCard(word, index, room.round, roomViewModel) {
+                                        showProgressbar = true
                                     }
                                 }
                             }
@@ -557,26 +535,8 @@ fun RoomContent(
                             ) {
 
                                 safeRoom.drawnWords.forEachIndexed { index, word ->
-                                    Box(
-                                        modifier = Modifier
-                                            .width(100.dp)
-                                            .height(50.dp)
-                                            .padding(4.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(if (!word.used) WordCard else Color.Gray)
-                                            .clickable {
-                                                if (!word.used) {
-                                                    showProgressbar = true
-                                                    roomViewModel.startNewGame(index, 0, 1){}
-                                                }
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        if(word.used){
-                                            Text(word.name,
-                                                color = Color.White
-                                            )
-                                        }
+                                    WordCard(word, index, room.round, roomViewModel) {
+                                        showProgressbar = true
                                     }
                                 }
                             }
@@ -1105,3 +1065,36 @@ fun Clues(
 
         }
     }
+
+@Composable
+fun WordCard(word: Word, index: Int, round: Int, roomViewModel: RoomViewModel, callback: () -> Unit){
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier
+            .width(150.dp)
+            .height(100.dp)
+            .background(Color.Transparent)
+            .padding(2.dp)
+            .shadow(8.dp, RoundedCornerShape(8.dp))
+            .clickable {
+                if (!word.used) {
+                    callback()
+                    roomViewModel.startNewRound(index, 0, round + 1) {}
+                }
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(if (!word.used) WordCard else Color.Gray),
+            contentAlignment = Alignment.Center
+        ) {
+            if (word.used) {
+                Text(
+                    text = word.name,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,)
+            }
+        }
+    }
+}
