@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.br.amber.jogodastrespistas.ui.theme.DialogBackGround
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -40,14 +42,15 @@ fun DefaultDialog(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0x0D000000))
-                    .padding(32.dp)
-                    .background(Color.Transparent),
+                    .background(Color.Transparent)
+                    .padding(32.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
                     modifier = Modifier
-                        .background(if (backgroundTransparent) Color.Transparent else Color.White)
+                        .background(
+                            color = DialogBackGround, // Define a cor de fundo
+                            shape = RoundedCornerShape(16.dp))
                         .padding(16.dp)
                         .verticalScroll(rememberScrollState())
                         .defaultMinSize(minWidth = 200.dp)
@@ -56,8 +59,6 @@ fun DefaultDialog(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     content()
-
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }

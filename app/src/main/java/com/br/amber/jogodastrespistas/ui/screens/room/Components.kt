@@ -40,6 +40,7 @@ import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
 import com.br.amber.jogodastrespistas.ui.components.CountdownTimer
 import com.br.amber.jogodastrespistas.ui.components.dialogs.DefaultDialog
 import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
+import com.br.amber.jogodastrespistas.ui.theme.WordCard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -505,7 +506,7 @@ fun RoomContent(
                                             .height(50.dp)
                                             .padding(4.dp)
                                             .clip(RoundedCornerShape(8.dp))
-                                            .background(if (!word.used) Color.Blue else Color.Gray)
+                                            .background(if (!word.used) WordCard else Color.Gray)
                                             .clickable {
                                                 if (!word.used) {
                                                     showProgressbar = true
@@ -562,7 +563,7 @@ fun RoomContent(
                                             .height(50.dp)
                                             .padding(4.dp)
                                             .clip(RoundedCornerShape(8.dp))
-                                            .background(if (!word.used) Color.Blue else Color.Gray)
+                                            .background(if (!word.used) WordCard else Color.Gray)
                                             .clickable {
                                                 if (!word.used) {
                                                     showProgressbar = true
