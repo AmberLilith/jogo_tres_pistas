@@ -16,11 +16,13 @@ val DialogTitle = Color(red = 80, green = 90, blue = 248, alpha = 255)
 
 val DialogBackGround = Color(red = 210, green = 216, blue = 254)
 
-val WordCard = Color(red = 91, green = 31, blue = 152)
+val WordCardBackground = Color(red = 91, green = 31, blue = 152)
 
-val ScoreCardFirstColor = Color(red = 80, green = 90, blue = 248, alpha = 255)
+val WordUsedCardBackground = Color(red = 91, green = 31, blue = 152, alpha = 128)
 
-val ScoreCardSecondColor = Color(red = 109, green = 115, blue = 250, alpha = 255)
+val ScoreBoardFirstColor = Color(red = 80, green = 90, blue = 248, alpha = 255)
+
+val ScoreBoardSecondColor = Color(red = 109, green = 115, blue = 250, alpha = 255)
 
 val WaitingGuestCardFirstColor = Color(red = 80, green = 90, blue = 248, alpha = 255)
 

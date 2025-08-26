@@ -2,8 +2,10 @@ package com.br.amber.jogodastrespistas.ui.components.indicators
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -20,8 +22,7 @@ import com.br.amber.jogodastrespistas.ui.components.CenteredBodyText
 fun LoadingIndicator(
     message: String = "Carregando...",
     modifier: Modifier = Modifier.Companion,
-    progressColor: Color = MaterialTheme.colorScheme.primary,
-    textStyle: TextStyle = MaterialTheme.typography.bodyMedium
+    progressColor: Color = MaterialTheme.colorScheme.primary
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -29,6 +30,7 @@ fun LoadingIndicator(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CircularProgressIndicator(color = progressColor)
+        Spacer(modifier = Modifier.height(6.dp))
         CenteredBodyText(message, color = Color.Black )
     }
 }

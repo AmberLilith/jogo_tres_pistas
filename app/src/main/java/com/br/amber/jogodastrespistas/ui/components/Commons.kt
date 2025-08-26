@@ -87,10 +87,12 @@ fun LeftAlignedText(text: String) {
 fun DefaultButton(
     text: String,
     fillMaxWidth: Boolean,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = Modifier
             .background(DefaultButtonColor, shape = RoundedCornerShape(10.dp))
             .height(60.dp)
