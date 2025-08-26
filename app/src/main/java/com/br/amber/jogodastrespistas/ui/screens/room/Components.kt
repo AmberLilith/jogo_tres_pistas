@@ -566,7 +566,7 @@ fun RoomContent(
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             DefaultButton("Aceitar", false, enabled = bothPlayersAreOnline) {
                                 progressBarText = "Gerando novo jogo. Aguarde!"
@@ -623,7 +623,7 @@ fun RoomContent(
                     {
                         LoadingIndicator(if(bothPlayersAreOnline) "Aguardando seu adiversário aceitar novo jogo..." else "Saindo da sala. Aguarde...")
 
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -671,7 +671,7 @@ fun RoomContent(
                         Spacer(modifier = Modifier.height(6.dp))
                         CenteredBodyText(text = "Clique em sair para voltar para a tela inicial", color = Color.Black)
 
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
 
                         Row(
@@ -776,7 +776,7 @@ fun RoomContent(
 
                         CenteredBodyText("Tem certeza que deseja sair do jogo?", color = Color.Black)
 
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
 
                         Row(
