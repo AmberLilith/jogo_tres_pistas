@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,8 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.br.amber.jogodastrespistas.ui.screens.room.RoomContent
+import androidx.compose.ui.graphics.Color
+import com.br.amber.jogodastrespistas.ui.theme.DefaultButtonColor
 import com.br.amber.jogodastrespistas.ui.theme.ScreenBackGround
+
 
 @Composable
 fun DefaultScreen(content: @Composable () -> Unit){
@@ -29,28 +34,48 @@ fun DefaultScreen(content: @Composable () -> Unit){
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         //pra que o conteudo não seja sobreposto pela camera quando ela fizer parte da tela quando a tela estiver configura para ser fullscreen
-        Spacer(modifier = Modifier.height(25.dp))
+        Spacer(modifier = Modifier.height(30.dp))
         content()
     }
 }
 
 @Composable
-fun CenteredBodyText(text: String) {
+fun CenteredBodyText(
+    text: String,
+    fillMaxWidth: Boolean = false,
+    color: Color = Color.White,
+    padding: Int = 0) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodyLarge,
         textAlign = TextAlign.Center, //Só funciona se tiver Modifer.fillMaxWidth()
-        modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth()
+        color = color,
+        modifier = Modifier
+            .padding(padding.dp)
+            .then(
+                if (fillMaxWidth) Modifier.fillMaxWidth()
+                else Modifier.widthIn(min = 50.dp)
+            )
     )
 }
 
 @Composable
-fun CenteredTitleText(text: String) {
+fun CenteredTitleText(
+    text: String,
+    fillMaxWidth: Boolean,
+    color: Color = Color.White,
+    padding: Int = 0) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleLarge,
-        textAlign = TextAlign.Center, //Só funciona se tiver Modifer.fillMaxWidth()
-        modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth()
+        textAlign = TextAlign.Center,
+        color = color,//Só funciona se tiver Modifer.fillMaxWidth()
+        modifier = Modifier
+            .padding(padding.dp)
+            .then(
+                if (fillMaxWidth) Modifier.fillMaxWidth()
+                else Modifier.widthIn(min = 50.dp)
+            )
     )
 }
 
@@ -60,6 +85,27 @@ fun LeftAlignedText(text: String) {
         text = text,
         style = MaterialTheme.typography.bodyLarge,
         textAlign = TextAlign.Start,
-        modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth()
+        modifier = Modifier
+            .padding(bottom = 8.dp)
     )
+}
+
+@Composable
+fun DefaultButton(
+    text: String,
+    fillMaxWidth: Boolean,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .background(DefaultButtonColor, shape = RoundedCornerShape(10.dp))
+            .height(60.dp)
+            .then(
+                if (fillMaxWidth) Modifier.fillMaxWidth()
+                else Modifier.widthIn(min = 50.dp)
+            )
+    ) {
+        CenteredTitleText(text, false)
+    }
 }

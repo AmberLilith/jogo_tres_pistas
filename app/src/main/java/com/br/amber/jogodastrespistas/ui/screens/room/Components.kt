@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,25 +15,14 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -46,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -55,17 +42,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.enums.PointsEnum
-import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
+import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.models.Word
 import com.br.amber.jogodastrespistas.ui.components.CenteredBodyText
 import com.br.amber.jogodastrespistas.ui.components.CenteredTitleText
 import com.br.amber.jogodastrespistas.ui.components.CountdownTimer
+import com.br.amber.jogodastrespistas.ui.components.DefaultButton
 import com.br.amber.jogodastrespistas.ui.components.dialogs.DefaultDialog
 import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
-import com.br.amber.jogodastrespistas.ui.theme.DialogTitle
-import com.br.amber.jogodastrespistas.ui.theme.ScoreCardFirstColor
-import com.br.amber.jogodastrespistas.ui.theme.ScoreCardSecondColor
+import com.br.amber.jogodastrespistas.ui.theme.WaitingGuestCardFirstColor
+import com.br.amber.jogodastrespistas.ui.theme.WaitingGuestCardSecondColor
 import com.br.amber.jogodastrespistas.ui.theme.WordCard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -131,10 +118,8 @@ fun RoomContent(
                         /*IconButton(onClick = {}) {
                             Icon(Icons.Default.Favorite, contentDescription = "Favorito")
                         }*/
-                        Button(onClick = {
+                        DefaultButton(text = "Sair", false) {
                             showDialogConfirmExit = true
-                        }) {
-                            Text("Sair")
                         }
                     }
                 }
@@ -354,10 +339,10 @@ fun RoomContent(
                     //***************************Dialogs Verificando resposta***************************
                     DefaultDialog(
                         showDialog = showVerifyingAnswerToWhoAnswered,
-                        "Resposta obtida for who answered!"
+                        "Sua resposta foi recebida!"
                     )
                     {
-                        LoadingIndicator("Verificando a resposta obtida...")
+                        LoadingIndicator("Verificando...")
 
                             if(room.status != RoomStatusesEnum.VERIFYING_ANSWER.name){
                                 showVerifyingAnswerToWhoAnswered = false
@@ -367,10 +352,10 @@ fun RoomContent(
 
                     DefaultDialog(
                         showDialog = showVerifyingAnswerToWhoWait,
-                        "Resposta obtida for who wait!"
+                        "$whoAnswered enviou uma resposta!"
                     )
                     {
-                        LoadingIndicator("Verificando a resposta obtida...")
+                        LoadingIndicator("Verificando...")
                     }
                     //*********************************************************************************
 
@@ -869,10 +854,7 @@ fun RoomContent(
                     }
                 }
 
-                Box(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                )
+                Spacer(modifier = Modifier.height(50.dp))
             }
         }
     }
@@ -890,7 +872,7 @@ fun ShowGame(
 )
 {
     Column {
-        CenteredTitleText("Rodada: ${safeRoom.round}")
+        CenteredTitleText("Rodada: ${safeRoom.round}", false)
         ScoreBoard(isLoggedUserOwner, safeRoom)
         Spacer(modifier = Modifier.padding(50.dp))
         Clues(safeRoom, roomViewModel, loggedUserName,text,onTextChange)
@@ -912,35 +894,30 @@ fun Clues(
     Column(
         modifier = Modifier
             .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(8.dp))
-            .padding(4.dp), // ← Padding DEPOIS da borda
+            .padding(4.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ){
 
             if(room.cluesShown > -1){
-                PointsAndClue(PointsEnum.HIGHER.points.toString(), room.drawnWords[room.chosenWordIndex].clues[0], Arrangement.Start)
-                /*Text(
-                    text = "${PointsEnum.HIGHER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[0]}",
-                    modifier = Modifier.align(Alignment.Start)
-                )*/
+                PointsAndClue(
+                    PointsEnum.HIGHER.points.toString(),
+                    room.drawnWords[room.chosenWordIndex].clues[0],
+                    Arrangement.Start)
 
 
                 if (room.cluesShown > 0) {
-                    PointsAndClue(PointsEnum.MEDIAN.points.toString(), room.drawnWords[room.chosenWordIndex].clues[1],
+                    PointsAndClue(PointsEnum.MEDIAN.points.toString(),
+                        room.drawnWords[room.chosenWordIndex].clues[1],
                         Arrangement.Center)
-                    /*Text(
-                        text = "${PointsEnum.MEDIAN.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[1]}",
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )*/
+
                 }
 
 
                 if (room.cluesShown > 1) {
-                    PointsAndClue(PointsEnum.LOWER.points.toString(), room.drawnWords[room.chosenWordIndex].clues[2],
+                    PointsAndClue(PointsEnum.LOWER.points.toString(),
+                        room.drawnWords[room.chosenWordIndex].clues[2],
                         Arrangement.End)
-                    /*Text(
-                        text = "${PointsEnum.LOWER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[2]}",
-                        modifier = Modifier.align(Alignment.End)
-                    )*/
+
                 }
 
                 if (
@@ -968,13 +945,11 @@ fun Clues(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Button(
-                        onClick = {
-                            roomViewModel.setStatus(RoomStatusesEnum.VERIFYING_ANSWER.name){}
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Enviar")
+                    DefaultButton(
+                        text = "Enviar",
+                        fillMaxWidth = true
+                    ){
+                        roomViewModel.setStatus(RoomStatusesEnum.VERIFYING_ANSWER.name){}
                     }
 
                 }else{
@@ -1076,13 +1051,12 @@ fun ScoreBoard(isLoggedUserOwner: Boolean, room: Room){
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(ScoreCardFirstColor,
-                            ScoreCardSecondColor
-                        ), // Cores do gradiente
-                        start = Offset(0.5f, 0f),    // 🔥 Topo center (x=50%, y=0%)
-                        end = Offset(0.5f, 1f)       // Bottom center (x=50%, y=100%)
-                    ))
+                    brush = Brush.verticalGradient(
+                        colors = listOf(WaitingGuestCardFirstColor,
+                            WaitingGuestCardSecondColor
+                        )
+                    )
+                )
                 .fillMaxWidth()
                 .height(100.dp)
                 .padding(12.dp)// espaço interno dentro do Card
