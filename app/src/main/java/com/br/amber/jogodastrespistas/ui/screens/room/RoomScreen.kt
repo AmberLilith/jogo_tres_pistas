@@ -1,9 +1,15 @@
 package com.br.amber.jogodastrespistas.ui.screens.room
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +29,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.data.RoomRepository
+import com.br.amber.jogodastrespistas.ui.components.DefaultScreen
 import com.br.amber.jogodastrespistas.ui.theme.ScreenBackGround
 
 @Composable
@@ -46,14 +53,5 @@ fun RoomScreen(
 
     val room by roomViewModel.roomState.collectAsState()
 
-    Box(
-        modifier = Modifier
-            .background(ScreenBackGround)
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-
-        // Conteúdo do jogo
-        RoomContent(room, navController, roomViewModel)
-    }
+    DefaultScreen { RoomContent(room, navController, roomViewModel) }
 }

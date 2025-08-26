@@ -1,11 +1,13 @@
 package com.br.amber.jogodastrespistas.ui.components.dialogs
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,7 +32,6 @@ import com.br.amber.jogodastrespistas.ui.theme.DialogTitle
 fun DefaultDialog(
     showDialog: Boolean,
     title: String,
-    backgroundTransparent: Boolean = false,
     content: @Composable () -> Unit
 ) {
     if (showDialog) {
@@ -54,7 +55,8 @@ fun DefaultDialog(
                             color = DialogBackGround,
                             shape = RoundedCornerShape(16.dp))
                         .verticalScroll(rememberScrollState())
-                        .defaultMinSize(minHeight = 400.dp)
+                        .fillMaxSize()
+
                 ) {
                     Text(
                         title,
@@ -71,9 +73,19 @@ fun DefaultDialog(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally, // Centraliza os filhos na horizontal
+                        verticalArrangement = Arrangement.Center) {
                         content()
                     }
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .background(DialogTitle,
+                            shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
+                    )
                 }
             }
         }

@@ -38,7 +38,7 @@ class RoomRepository {
         val path = if (isOwner) "owner/score" else "guest/score"
         val pointsRef = roomsRef.child(roomId).child(path)
         pointsRef.setValue(newScore).addOnSuccessListener {
-            Log.d("Firebase", "Score atualizada com sucesso")
+            Log.d("Firebase", "Score atualizado para $newScore com sucesso")
             onSuccess()
         }.addOnFailureListener { error ->
             Log.e("Firebase", "Erro ao atualizar o score: ${error.message}")
@@ -47,16 +47,16 @@ class RoomRepository {
 
     fun setTurn(roomId: String, isOwnerTurn: Boolean, onSuccess: () -> Unit) {
         roomsRef.child(roomId).child("ownerTurn").setValue(isOwnerTurn).addOnSuccessListener {
-            Log.d("Firebase", "Turno atualizado com sucesso")
+            Log.d("Firebase", "ownerTurn atualizado para $isOwnerTurn com sucesso")
             onSuccess()
         }.addOnFailureListener { error ->
-            Log.e("Firebase", "Erro ao atualizar o turno: ${error.message}")
+            Log.e("Firebase", "Erro ao atualizar o ownerTurn: ${error.message}")
         }
     }
 
-    fun setChosenWordIndex(roomId: String, count: Int, onSuccess: () -> Unit) {
-        roomsRef.child(roomId).child("chosenWordIndex").setValue(count).addOnSuccessListener {
-            Log.d("Firebase", "chosenWordIndex atualizada com sucesso")
+    fun setChosenWordIndex(roomId: String, wordIndex: Int, onSuccess: () -> Unit) {
+        roomsRef.child(roomId).child("chosenWordIndex").setValue(wordIndex).addOnSuccessListener {
+            Log.d("Firebase", "chosenWordIndex atualizada para $wordIndex com sucesso")
             onSuccess()
         }.addOnFailureListener { error ->
             Log.e("Firebase", "Erro ao atualizar chosenWordIndex: ${error.message}")
@@ -65,7 +65,7 @@ class RoomRepository {
 
     fun setStatus(roomId: String, status: String, onSuccess: () -> Unit) {
         roomsRef.child(roomId).child("status").setValue(status).addOnSuccessListener {
-            Log.d("Firebase", "Status atualizado com sucesso")
+            Log.d("Firebase", "Status atualizado para $status com sucesso")
             onSuccess()
         }.addOnFailureListener { error ->
             Log.e("Firebase", "Erro ao atualizar o status: ${error.message}")
@@ -74,7 +74,7 @@ class RoomRepository {
 
     fun setCluesShown(roomId: String, nextCluesShown: Int, onSuccess: () -> Unit) {
         roomsRef.child(roomId).child("cluesShown").setValue(nextCluesShown).addOnSuccessListener {
-            Log.d("Firebase", "Quantidade de pistas exibidas atualizada com sucesso")
+            Log.d("Firebase", "Quantidade de pistas exibidas atualizada para $nextCluesShown com sucesso")
             onSuccess()
         }.addOnFailureListener { error ->
             Log.e("Firebase", "Erro ao atualizar a qantidade de pistas exibidas: ${error.message}")
@@ -83,7 +83,7 @@ class RoomRepository {
 
     fun setRound(roomId: String, round: Int, onSuccess: () -> Unit){
         roomsRef.child(roomId).child("round").setValue(round).addOnSuccessListener {
-            Log.d("Firebase", "Round atualizado com sucesso")
+            Log.d("Firebase", "Round atualizado poara $round com sucesso")
             onSuccess()
         }.addOnFailureListener { error ->
             Log.e("Firebase", "Erro ao atualizar o round: ${error.message}")
@@ -101,7 +101,7 @@ class RoomRepository {
     fun appendUsedWords(roomId: String, currentUsedWords: List<String>, newUsedWords: List<String>, onSuccess: () -> Unit){
         val wordsToupdate = currentUsedWords.plus(newUsedWords)
         roomsRef.child(roomId).child("usedWords").setValue(wordsToupdate).addOnSuccessListener {
-            Log.d("Firebase", "usedWords atualizado com sucesso")
+            Log.d("Firebase", "usedWords atualizado para $wordsToupdate com sucesso")
             onSuccess()
         }.addOnFailureListener { error ->
             Log.e("Firebase", "Erro ao atualizar usedWords: ${error.message}")
@@ -111,7 +111,7 @@ class RoomRepository {
     fun setPlayerOnlineStatus(roomId: String, isOwner: Boolean, online: Boolean, onSuccess: () -> Unit) {
         val path = if (isOwner) "owner/online" else "guest/online"
         roomsRef.child(roomId).child(path).setValue(online).addOnSuccessListener {
-            Log.d("Firebase", "Status online de ${if (isOwner) "owner" else "guest"} atualizado com sucesso")
+            Log.d("Firebase", "Status online de ${if (isOwner) "owner" else "guest"} atualizado para $online com sucesso")
             onSuccess()
         }.addOnFailureListener { error ->
             Log.e("Firebase", "Erro ao atualizar o status online de ${if (isOwner) "owner" else "guest"}: ${error.message}")
@@ -121,7 +121,7 @@ class RoomRepository {
     fun setWordUsed(roomId: String, wordIndex: Int, onSuccess: () -> Unit) {
         val path = "drawnWords/$wordIndex/used"
         roomsRef.child(roomId).child(path).setValue(true).addOnSuccessListener {
-            Log.d("Firebase", "Status usado da palavra índice $wordIndex atualizado com sucesso")
+            Log.d("Firebase", "Status usado da palavra índice $wordIndex atualizado para true com sucesso")
             onSuccess()
         }.addOnFailureListener { error ->
             Log.e("Firebase", "Erro ao atualizar o status usado da palavra índice $wordIndex: ${error.message}")

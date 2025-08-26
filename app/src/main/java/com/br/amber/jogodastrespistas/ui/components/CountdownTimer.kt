@@ -49,7 +49,7 @@ fun CountdownTimer(
 
     if (visible) {
         Text(
-            text = "$formatted $extraText",
+            text = "$timeLeft $extraText",
             fontSize = fontSize.sp,
             color = counterColor
         )
