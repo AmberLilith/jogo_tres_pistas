@@ -786,7 +786,7 @@ fun RoomContent(
                                 showDialogConfirmExit = false
                             }
 
-                            DefaultButton("Sim", false){//TODO excluir sala se owner ainda estiver aguardando guest
+                            DefaultButton("Sim", false){
                                 if(bothPlayersAreOnline) {
                                     roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
                                         navController.popBackStack()
