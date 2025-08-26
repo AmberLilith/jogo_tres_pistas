@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
@@ -85,7 +87,10 @@ fun HomeScreen(
             Spacer(modifier = Modifier.padding(8.dp))
 
             waitingRooms.forEachIndexed { index, room ->
-                Card(modifier = Modifier.padding(8.dp)) {
+                Card(elevation = CardDefaults.cardElevation(8.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                    .padding(8.dp)) {
                     Column(
                         modifier = Modifier
                             .background(
@@ -97,11 +102,11 @@ fun HomeScreen(
                             )
                             .padding(16.dp)
                     ) {
-                        CenteredTitleText("Sala ${index + 1}", true)
+                        CenteredTitleText("Sala ${index + 1}")
 
                         HorizontalDivider(thickness = 2.dp)
 
-                        CenteredBodyText("${room.owner.nickName} aguardando adversário!", true, padding = 12)
+                        CenteredBodyText("${room.owner.nickName} aguardando adversário!", padding = 12)
 
                         Box(
                             modifier = Modifier

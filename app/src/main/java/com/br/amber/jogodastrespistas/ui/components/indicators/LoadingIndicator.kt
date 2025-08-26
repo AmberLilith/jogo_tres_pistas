@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import com.br.amber.jogodastrespistas.ui.components.CenteredBodyText
 
 @Composable
 fun LoadingIndicator(
@@ -28,10 +29,6 @@ fun LoadingIndicator(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CircularProgressIndicator(color = progressColor)
-        Text(
-            text = message,
-            modifier = Modifier.padding(8.dp),
-            style = textStyle
-        )
+        CenteredBodyText(message, color = Color.Black )
     }
 }

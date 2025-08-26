@@ -42,7 +42,6 @@ fun DefaultScreen(content: @Composable () -> Unit){
 @Composable
 fun CenteredBodyText(
     text: String,
-    fillMaxWidth: Boolean = false,
     color: Color = Color.White,
     padding: Int = 0) {
     Text(
@@ -52,31 +51,25 @@ fun CenteredBodyText(
         color = color,
         modifier = Modifier
             .padding(padding.dp)
-            .then(
-                if (fillMaxWidth) Modifier.fillMaxWidth()
-                else Modifier.widthIn(min = 50.dp)
-            )
+            .fillMaxWidth()
     )
 }
 
 @Composable
 fun CenteredTitleText(
     text: String,
-    fillMaxWidth: Boolean,
     color: Color = Color.White,
     padding: Int = 0) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleLarge,
-        textAlign = TextAlign.Center,
-        color = color,//Só funciona se tiver Modifer.fillMaxWidth()
+        textAlign = TextAlign.Center,//Só funciona se tiver Modifer.fillMaxWidth()
+        color = color,
         modifier = Modifier
             .padding(padding.dp)
-            .then(
-                if (fillMaxWidth) Modifier.fillMaxWidth()
-                else Modifier.widthIn(min = 50.dp)
-            )
+            .fillMaxWidth()
     )
+
 }
 
 @Composable
@@ -106,6 +99,6 @@ fun DefaultButton(
                 else Modifier.widthIn(min = 50.dp)
             )
     ) {
-        CenteredTitleText(text, false)
+        Text(text, color = Color.White)
     }
 }
