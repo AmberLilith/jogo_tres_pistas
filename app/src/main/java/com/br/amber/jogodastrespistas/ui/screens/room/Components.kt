@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -32,6 +34,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -117,13 +120,13 @@ fun RoomContent(
                     // Grupo da ESQUERDA
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp) // Espaço entre os componentes
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {}//inserir se precisar
 
                     // Grupo da DIREITA
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp) // Espaço entre os botões
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         /*IconButton(onClick = {}) {
                             Icon(Icons.Default.Favorite, contentDescription = "Favorito")
@@ -914,25 +917,30 @@ fun Clues(
     ){
 
             if(room.cluesShown > -1){
-                Text(
+                PointsAndClue(PointsEnum.HIGHER.points.toString(), room.drawnWords[room.chosenWordIndex].clues[0], Arrangement.Start)
+                /*Text(
                     text = "${PointsEnum.HIGHER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[0]}",
                     modifier = Modifier.align(Alignment.Start)
-                )
+                )*/
 
 
                 if (room.cluesShown > 0) {
-                    Text(
+                    PointsAndClue(PointsEnum.MEDIAN.points.toString(), room.drawnWords[room.chosenWordIndex].clues[1],
+                        Arrangement.Center)
+                    /*Text(
                         text = "${PointsEnum.MEDIAN.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[1]}",
                         modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                    )*/
                 }
 
 
                 if (room.cluesShown > 1) {
-                    Text(
+                    PointsAndClue(PointsEnum.LOWER.points.toString(), room.drawnWords[room.chosenWordIndex].clues[2],
+                        Arrangement.End)
+                    /*Text(
                         text = "${PointsEnum.LOWER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[2]}",
                         modifier = Modifier.align(Alignment.End)
-                    )
+                    )*/
                 }
 
                 if (
@@ -986,6 +994,39 @@ fun Clues(
 
         }
     }
+
+@Composable
+fun PointsAndClue(points: String, clue: String, arrangement: Arrangement.Horizontal){
+    Row(
+        horizontalArrangement = arrangement,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = points,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .background(Color(red = 80, green = 90, blue = 248, alpha = 255))
+                .widthIn(min = 50.dp)
+                .border(2.dp, Color(45, 135, 241, 255))
+                .padding(12.dp)
+        )
+
+        Text(
+            text = clue,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            modifier = Modifier
+                .background(Color(red = 91, green = 31, blue = 152))
+                .border(1.dp, Color(45, 135, 241, 255))
+                .padding(12.dp)
+        )
+    }
+}
+
 
 @Composable
 fun WordCard(word: Word, index: Int, round: Int, roomViewModel: RoomViewModel, callback: () -> Unit){
