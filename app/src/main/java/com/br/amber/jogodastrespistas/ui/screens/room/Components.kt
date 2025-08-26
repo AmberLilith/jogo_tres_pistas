@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -607,7 +606,7 @@ fun RoomContent(
                                                 "Firebase",
                                                 "Erro ao deletar a sala: ${error.message}"
                                             )
-                                            showDialogGameOver = false
+                                            showDialogPlayAgain = false
                                             navController.popBackStack()
                                         }
                                     )
@@ -788,9 +787,26 @@ fun RoomContent(
                             }
 
                             DefaultButton("Sim", false){//TODO excluir sala se owner ainda estiver aguardando guest
-                                roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false){
-                                    navController.popBackStack()
-                                    showDialogConfirmExit = false
+                                if(bothPlayersAreOnline) {
+                                    roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
+                                        navController.popBackStack()
+                                        showDialogConfirmExit = false
+                                    }
+                                }else{
+                                    roomViewModel.deleteRoom(
+                                        onSuccess = {
+                                            showDialogConfirmExit = false
+                                            navController.popBackStack()
+                                        },
+                                        onFailure = { error ->
+                                            Log.e(
+                                                "Firebase",
+                                                "Erro ao deletar a sala: ${error.message}"
+                                            )
+                                            showDialogConfirmExit = false
+                                            navController.popBackStack()
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -804,14 +820,15 @@ fun RoomContent(
                         }
 
                         RoomStatusesEnum.PLAYING.name -> {
-                            showDialogWaitingPlayAgainAcceptance = false //TODO procurar melhor lugar para alterar essas variaveis
+                            showDialogWaitingPlayAgainAcceptance = false
                             showDialogPlayAgain = false
                             ShowGame(
                                 safeRoom,
                                 roomViewModel,
                                 isLoggedUserOwner,
-                                loggedUserName,
+                                opponentName,
                                 text = text,
+                                bothPlayersAreOnline,
                                 onTextChange = { text = it }
                             )
                         }
@@ -830,8 +847,9 @@ fun ShowGame(
     safeRoom: Room,
     roomViewModel: RoomViewModel,
     isLoggedUserOwner: Boolean,
-    loggedUserName: String,
+    opponentName: String,
     text: String,
+    bothPlayersAreOnline: Boolean,
     onTextChange: (String) -> Unit
 )
 {
@@ -844,7 +862,7 @@ fun ShowGame(
             safeRoom.guest.nickName,
             safeRoom.guest.score)
         Spacer(modifier = Modifier.padding(50.dp))
-        Clues(safeRoom, roomViewModel, loggedUserName,text,onTextChange)
+        Clues(safeRoom, roomViewModel, opponentName,text,bothPlayersAreOnline,onTextChange)
     }
 
 
@@ -857,6 +875,7 @@ fun Clues(
     roomViewModel: RoomViewModel,
     opponentName: String,
     text: String,
+    bothPlayersAreOnline: Boolean,
     onTextChange: (String) -> Unit
 )
 {
@@ -893,17 +912,19 @@ fun Clues(
                     (roomViewModel.loggedUserId == room.owner.id && room.ownerTurn) ||
                     (roomViewModel.loggedUserId == room.guest.id && !room.ownerTurn)
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CountdownTimer(
-                            Room.ANSWER_TIMEOUT_SECONDS,
-                            Color.Red,
-                            fontSize = 12,
-                            extraText = " segundos para responder..."
+                    if(bothPlayersAreOnline){
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            roomViewModel.verifyTimeOut(room) {}
+                            CountdownTimer(
+                                Room.ANSWER_TIMEOUT_SECONDS,
+                                Color.Red,
+                                fontSize = 12,
+                                extraText = " segundos para você responder..."
+                            ) {
+                                roomViewModel.verifyTimeOut(room) {}
+                            }
                         }
                     }
 
