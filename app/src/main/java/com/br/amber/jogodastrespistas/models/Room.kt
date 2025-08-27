@@ -18,6 +18,8 @@ data class Room(
 
     companion object{
         const val NUMBER_OF_ROUNDS = 2
+
+
         const val DIALOGS_MILLISECONDS_DELAY = 5000L
 
         const val ANSWER_TIMEOUT_SECONDS = 30

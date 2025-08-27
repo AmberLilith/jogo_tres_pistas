@@ -5,24 +5,25 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.br.amber.jogodastrespistas.navigation.AppNavHost
-import com.br.amber.jogodastrespistas.ui.theme.JogoDasTrêsPistasTheme
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import com.br.amber.jogodastrespistas.ui.screens.login.AuthViewModel
+import com.br.amber.jogodastrespistas.ui.theme.JogoDasTrêsPistasTheme
 
 class MainActivity : ComponentActivity() {
     private val authViewModel by viewModels<AuthViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Remove a barra de status (IMERSIVO)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.hide(WindowInsetsCompat.Type.statusBars()) // ← Esconde barra de status
+        windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
         setContent {
             JogoDasTrêsPistasTheme {
                 AppNavHost(authViewModel = authViewModel)

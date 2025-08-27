@@ -9,16 +9,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -30,16 +32,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.enums.PointsEnum
-import com.br.amber.jogodastrespistas.models.Room
 import com.br.amber.jogodastrespistas.enums.RoomStatusesEnum
+import com.br.amber.jogodastrespistas.models.Room
+import com.br.amber.jogodastrespistas.ui.components.CenteredBodyText
+import com.br.amber.jogodastrespistas.ui.components.CenteredTitleText
 import com.br.amber.jogodastrespistas.ui.components.CountdownTimer
+import com.br.amber.jogodastrespistas.ui.components.DefaultButton
 import com.br.amber.jogodastrespistas.ui.components.dialogs.DefaultDialog
 import com.br.amber.jogodastrespistas.ui.components.indicators.LoadingIndicator
+import com.br.amber.jogodastrespistas.ui.theme.ScoreBoardFirstColor
+import com.br.amber.jogodastrespistas.ui.theme.ScoreBoardSecondColor
+import com.br.amber.jogodastrespistas.ui.theme.WordCardBackground
+import com.br.amber.jogodastrespistas.ui.theme.WordUsedCardBackground
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -49,7 +62,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun RoomContent(
     room: Room?,
-    innerPadding: PaddingValues,
     navController: NavHostController,
     roomViewModel: RoomViewModel
 )
@@ -65,7 +77,6 @@ fun RoomContent(
                 "Erro ao carregar a sala",
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
                     .padding(16.dp)
             )
         }
@@ -73,23 +84,46 @@ fun RoomContent(
         else -> {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(16.dp)
-            ) {
+                    .fillMaxHeight()
+                    .padding(4.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            )
+            {
                 var showDialogConfirmExit by remember { mutableStateOf(false) }
                 var text by remember { mutableStateOf("") }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Button(
-                        onClick = {
-                            showDialogConfirmExit = true
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Sair")//TODO configurar para quando owner aguardar guest, se sair, tem que excluir a sala
 
+
+
+
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 4.dp, end = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Grupo da ESQUERDA
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {}//inserir se precisar
+
+                    // Grupo da DIREITA
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        /*IconButton(onClick = {}) {
+                            Icon(Icons.Default.Favorite, contentDescription = "Favorito")
+                        }*/
+                        DefaultButton(text = "Sair", false) {
+                            showDialogConfirmExit = true
+                        }
                     }
                 }
+
+
                 room.let { safeRoom ->
                     var showDialogOpponentHasLeft by remember { mutableStateOf(false) }
                     var showDialogGameOver by remember { mutableStateOf(false) }
@@ -275,33 +309,27 @@ fun RoomContent(
                     //***************************Dialogs Novo Jogo***************************
                     DefaultDialog(
                         showDialog = showStartingNewGameDialog,
-                        "Iniciando novo jogo!",
-                        backgroundTransparent = false
+                        "Iniciando novo jogo!"
                     )
                     {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Um novo jogo vai começar após a contagem regressiva!",style = MaterialTheme.typography.bodyMedium)
-                            CountdownTimer((Room.DIALOGS_MILLISECONDS_DELAY / 1000).toInt(), Color.Red) {
-                                roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name){
-                                    showStartingNewGameDialog = false
-                                }
+                        CenteredBodyText("Um novo jogo vai começar após a contagem regressiva!", color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        CountdownTimer((Room.DIALOGS_MILLISECONDS_DELAY / 1000).toInt(), Color.Red) {
+                            roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEW_GAME.name){
+                                showStartingNewGameDialog = false
                             }
                         }
-
-
                     }
 
                     DefaultDialog(
                         showDialog = showWaitingStartNewGameDialog,
-                        "Iniciando novo jogo!",
-                        backgroundTransparent = false
+                        "Iniciando novo jogo!"
                     )
                     {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Um novo jogo vai começar após a contagem regressiva!",style = MaterialTheme.typography.bodyMedium)
-                            CountdownTimer((Room.DIALOGS_MILLISECONDS_DELAY / 1000).toInt(),  Color.Red) {
-                                showWaitingStartNewGameDialog = false
-                            }
+                        CenteredBodyText("Um novo jogo vai começar após a contagem regressiva!", color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        CountdownTimer((Room.DIALOGS_MILLISECONDS_DELAY / 1000).toInt(),  Color.Red) {
+                            showWaitingStartNewGameDialog = false
                         }
                     }
                     //*********************************************************************************
@@ -312,11 +340,10 @@ fun RoomContent(
                     //***************************Dialogs Verificando resposta***************************
                     DefaultDialog(
                         showDialog = showVerifyingAnswerToWhoAnswered,
-                        "Resposta obtida for who answered!",
-                        backgroundTransparent = false
+                        "Sua resposta foi recebida!"
                     )
                     {
-                        LoadingIndicator("Verificando a resposta obtida...")
+                        LoadingIndicator("Verificando...")
 
                             if(room.status != RoomStatusesEnum.VERIFYING_ANSWER.name){
                                 showVerifyingAnswerToWhoAnswered = false
@@ -326,11 +353,10 @@ fun RoomContent(
 
                     DefaultDialog(
                         showDialog = showVerifyingAnswerToWhoWait,
-                        "Resposta obtida for who wait!",
-                        backgroundTransparent = false
+                        "$whoAnswered enviou uma resposta!"
                     )
                     {
-                        LoadingIndicator("Verificando a resposta obtida...")
+                        LoadingIndicator("Verificando...")
                     }
                     //*********************************************************************************
 
@@ -338,24 +364,17 @@ fun RoomContent(
                     //------------------------Dialogs Resposta Errada----------------------------------
                     DefaultDialog(
                         showDialog = showGotWrongAnswerToWhoAnswered,
-                        "Resposta Errada!",
-                        backgroundTransparent = false
+                        "Resposta Errada!"
                     )
                     {
-
-                        Column {
-                            Text(
-                                text = "Você errou a palavra!",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                        }
+                        CenteredBodyText("Você errou a palavra!", color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        LoadingIndicator("Passando a vez...")
                     }
 
                     DefaultDialog(
                         showDialog = showGotWrongAnswerToWhoWait,
-                        "Resposta errada!",
-                        backgroundTransparent = false
+                        "Resposta errada!"
                     )
                     {
                         LoadingIndicator("$whoAnswered errou a palavra. A seguir será sua vez de responder!")
@@ -366,69 +385,50 @@ fun RoomContent(
                     //====================Dialogs Resposta Correta (Final round ou não)=======================
                     DefaultDialog(
                         showDialog = showGotCorrectAnswerToWhoAnswered,
-                        "Resposta correta!",
-                        backgroundTransparent = false
+                        "Resposta correta!"
                     )
                     {
 
-                        Column {
-                            Text(
-                                text = "Você acertou a palavra.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                        }
-
+                        CenteredBodyText("Você acertou a palavra.", color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
                         LoadingIndicator("Iniciando uma nova rodada! Será a vez de $opponentName responder...")
 
                     }
 
                     DefaultDialog(
                         showDialog = showGotCorrectAnswerToWhoWait,
-                        "Resposta correta!",
-                        backgroundTransparent = false
+                        "Resposta correta!"
                     )
                     {
 
-                        Column {
-                            Text(
-                                text = "$whoAnswered acertou a palavra.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-
-                            Text(
-                                text = "A palavra era ${room.drawnWords[room.chosenWordIndex].name}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-
-                            LoadingIndicator("A seguir será sua vez de responder!")
-                        }
+                        CenteredBodyText("$whoAnswered acertou a palavra.", color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        CenteredBodyText("Palavra correta: ", color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        WordCard(
+                            wordName = room.drawnWords[room.chosenWordIndex].name,
+                            wordIsUsed = room.drawnWords[room.chosenWordIndex].used,
+                            showAlwaysDefaultBgColor = true) { }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        LoadingIndicator("A seguir será sua vez de responder!")
                     }
                     //==============================================================================
 
                     //------------------------Dialogs Sem Resposta----------------------------------
                     DefaultDialog(
                         showDialog = showGotNoAnswerToWhoseIsTurn || showRoundFinishedWithoutAnswerToWhoseIsTurn,
-                        "Sem resposta!",
-                        backgroundTransparent = false
+                        "Sem resposta!"
                     )
                     {
 
-                        Column {
-                            Text(
-                                text = "Você não respondeu a tempo!",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                        }
+                        CenteredBodyText("Você não respondeu a tempo!", color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        LoadingIndicator("Passando a vez. Aguarde...")
                     }
 
                     DefaultDialog(
                         showDialog = showGotNoAnswerToWhoWait || showRoundFinishedWithoutAnswerToWhoWait,
-                        "Sem resposta!",
-                        backgroundTransparent = false
+                        "Sem resposta!"
                     )
                     {
                         LoadingIndicator("$whoAnswered não respondeu a tempo. A seguir será sua vez de responder!")
@@ -439,18 +439,11 @@ fun RoomContent(
                     //==========================Dialogs Final Round Com Resposta Errada==========================
                     DefaultDialog(
                         showDialog = showGotRoundFinishWithWrongAnswerToWhoAnswered,
-                        "Resposta errada!",
-                        backgroundTransparent = false
+                        "Resposta errada!"
                     )
                     {
-                        Column {
-                            Text(
-                                text = "Você errou a palavra.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                        }
-
+                        CenteredBodyText("Você errou a palavra.", color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
                         LoadingIndicator("Iniciando uma nova rodada! Será a vez de $opponentName responder...")
 
                         roomViewModel.setStatus(RoomStatusesEnum.CHOOSING_WORD_NEXT_ROUND.name){}
@@ -460,24 +453,14 @@ fun RoomContent(
 
                     DefaultDialog(
                         showDialog = showGotRoundFinishWithWrongAnswerToWhoWait,
-                        "Resposta errada!",
-                        backgroundTransparent = false
+                        "Resposta errada!"
                     )
                     {
-                        Column {
-                            Text(
-                                text = "$whoAnswered errou a palavra.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-
-                            Text(
-                                text = "A palavra era ${room.drawnWords[room.chosenWordIndex].name}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            LoadingIndicator("A seguir será sua vez de responder!")
-                        }
+                        CenteredBodyText("$whoAnswered errou a palavra.", color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        CenteredBodyText("A palavra era ${room.drawnWords[room.chosenWordIndex].name}", color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        LoadingIndicator("A seguir será sua vez de responder!")
                     }
                     //==============================================================================
 
@@ -486,8 +469,7 @@ fun RoomContent(
                     //¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬Dialogs Escolher Palavra Proximo Round¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬
                     DefaultDialog(
                         showDialog = showChooseWordDialogNextRound,
-                        "Escolha um cartão!",
-                        backgroundTransparent = false
+                        "Escolha um cartão!"
 
                     )
                     {
@@ -499,26 +481,9 @@ fun RoomContent(
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 safeRoom.drawnWords.forEachIndexed { index, word ->
-                                    Box(
-                                        modifier = Modifier
-                                            .width(100.dp)
-                                            .height(50.dp)
-                                            .padding(4.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(if (!word.used) Color.Blue else Color.Gray)
-                                            .clickable {
-                                                if (!word.used) {
-                                                    showProgressbar = true
-                                                    roomViewModel.startNewRound(index, 0, room.round + 1){}
-                                                }
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        if(word.used){
-                                            Text(word.name,
-                                                color = Color.White
-                                            )
-                                        }
+                                    WordCard(word.name, word.used) {
+                                        showProgressbar = true
+                                        roomViewModel.startNewRound(index, 0, room.round + 1) {}
                                     }
                                 }
                             }
@@ -529,8 +494,7 @@ fun RoomContent(
 
                     DefaultDialog(
                         showDialog = showWaitingWordChoiceDialogNextRound,
-                        "Palavra sendo escolhida!",
-                        backgroundTransparent = false
+                        "Palavra sendo escolhida!"
                     )
                     {
                         LoadingIndicator("Aguarde escolha da palavra!")
@@ -542,8 +506,7 @@ fun RoomContent(
                     //¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬Dialogs Escolher Palavra Novo Jogo¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬
                     DefaultDialog(
                         showDialog = showChooseWordDialogNewGame,
-                        "Escolha um cartão!",
-                        backgroundTransparent = false
+                        "Escolha um cartão!"
 
                     )
                     {
@@ -556,26 +519,9 @@ fun RoomContent(
                             ) {
 
                                 safeRoom.drawnWords.forEachIndexed { index, word ->
-                                    Box(
-                                        modifier = Modifier
-                                            .width(100.dp)
-                                            .height(50.dp)
-                                            .padding(4.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(if (!word.used) Color.Blue else Color.Gray)
-                                            .clickable {
-                                                if (!word.used) {
-                                                    showProgressbar = true
-                                                    roomViewModel.startNewGame(index, 0, 1){}
-                                                }
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        if(word.used){
-                                            Text(word.name,
-                                                color = Color.White
-                                            )
-                                        }
+                                    WordCard(word.name, word.used) {
+                                        showProgressbar = true
+                                        roomViewModel.startNewRound(index, 0, room.round + 1){}
                                     }
                                 }
                             }
@@ -586,8 +532,7 @@ fun RoomContent(
 
                     DefaultDialog(
                         showDialog = showWaitingWordChoiceDialogNewGame,
-                        "Palavra sendo escolhida!",
-                        backgroundTransparent = false
+                        "Palavra sendo escolhida!"
                     )
                     {
                         LoadingIndicator("Aguarde escolha da palavra!")
@@ -598,23 +543,19 @@ fun RoomContent(
                     //+++++++++++++++++++++++++Dialogs Jogar Novamente+++++++++++++++++++++++++++++++++++
                     DefaultDialog(
                         showDialog = showDialogPlayAgain,
-                        "Jogar Novamente!",
-                        backgroundTransparent = false
+                        "Jogar Novamente!"
                     )
                     {
                         var progressBarText = ""
                         var showProgressWaitingAcceptance by remember { mutableStateOf(false) }
 
                         Column {
-
                             if(showProgressWaitingAcceptance){
                                 LoadingIndicator(progressBarText)
                             }else{
-                                Text(
+                                CenteredBodyText(
                                     text = if (bothPlayersAreOnline) "Seu adversário deseja jogar novamente!" else "Não é possível jogar novamente, pois seu adversário saiu do jogo!",
-                                    color = if (bothPlayersAreOnline) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    modifier = Modifier.padding(bottom = 8.dp)
+                                    color = if (bothPlayersAreOnline) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
                                 )
                             }
 
@@ -624,68 +565,59 @@ fun RoomContent(
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Button(
-                                onClick = {
-                                    progressBarText = "Gerando novo jogo. Aguarde!"
-                                    showProgressWaitingAcceptance = true
-                                    roomViewModel.getRandomSetOfWords(room.usedWords){ newDrawnWords ->
-                                        val newUsedWords = newDrawnWords.map{ word -> word.name}
-                                        roomViewModel.appendUsedWords(room.usedWords,newUsedWords){
-                                            roomViewModel.setDrawnWords(newDrawnWords){
+                            DefaultButton("Aceitar", false, enabled = bothPlayersAreOnline) {
+                                progressBarText = "Gerando novo jogo. Aguarde!"
+                                showProgressWaitingAcceptance = true
+                                roomViewModel.getRandomSetOfWords(room.usedWords){ newDrawnWords ->
+                                    val newUsedWords = newDrawnWords.map{ word -> word.name}
+                                    roomViewModel.appendUsedWords(room.usedWords,newUsedWords){
+                                        roomViewModel.setDrawnWords(newDrawnWords){
+                                            roomViewModel.setRound(0){
                                                 roomViewModel.setStatus(RoomStatusesEnum.STARTING_NEW_GAME.name){
                                                     showDialogPlayAgain = false
                                                 }
                                             }
                                         }
                                     }
-                                },
-                                enabled = bothPlayersAreOnline
-                            ) {
-                                Text("Aceitar")
+                                }
                             }
 
-                            Button(
-                                onClick = {
-                                    progressBarText  = "Saindo da sala. Aguarde!"
-                                    showProgressWaitingAcceptance = true
-                                    if (bothPlayersAreOnline) {
-                                        roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
-                                            CoroutineScope(Dispatchers.Main).launch{  //Usar com CoroutineScope(Dispatchers.Main).launch quando nao estiver dentro de uma coroutine como LaunchedEffect. caso contrário, basta usar delay()
-                                                delay(2000)
-                                                showDialogPlayAgain = false
-                                                navController.popBackStack()
-                                            }
+                            DefaultButton("Sair", false) {
+                                progressBarText  = "Saindo da sala. Aguarde!"
+                                showProgressWaitingAcceptance = true
+                                if (bothPlayersAreOnline) {
+                                    roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
+                                        CoroutineScope(Dispatchers.Main).launch{  //Usar com CoroutineScope(Dispatchers.Main).launch quando nao estiver dentro de uma coroutine como LaunchedEffect. caso contrário, basta usar delay()
+                                            delay(2000)
+                                            showDialogPlayAgain = false
+                                            navController.popBackStack()
                                         }
-                                    } else {
-                                        roomViewModel.deleteRoom(
-                                            onSuccess = {
-                                                showDialogPlayAgain = false
-                                                navController.popBackStack()
-                                            },
-                                            onFailure = { error ->
-                                                Log.e(
-                                                    "Firebase",
-                                                    "Erro ao deletar a sala: ${error.message}"
-                                                )
-                                                showDialogGameOver = false
-                                                navController.popBackStack()
-                                            }
-                                        )
                                     }
+                                } else {
+                                    roomViewModel.deleteRoom(
+                                        onSuccess = {
+                                            showDialogPlayAgain = false
+                                            navController.popBackStack()
+                                        },
+                                        onFailure = { error ->
+                                            Log.e(
+                                                "Firebase",
+                                                "Erro ao deletar a sala: ${error.message}"
+                                            )
+                                            showDialogPlayAgain = false
+                                            navController.popBackStack()
+                                        }
+                                    )
                                 }
-                            ) {
-                                Text("Sair")
-
                             }
                         }
                     }
 
                     DefaultDialog(
                         showDialog = showDialogWaitingPlayAgainAcceptance,
-                        "Jogar Novamente!",
-                        backgroundTransparent = false
+                        "Jogar Novamente!"
                     )
                     {
                         LoadingIndicator(if(bothPlayersAreOnline) "Aguardando seu adiversário aceitar novo jogo..." else "Saindo da sala. Aguarde...")
@@ -694,39 +626,33 @@ fun RoomContent(
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Button(
-                                onClick = {
-                                    if (bothPlayersAreOnline) {
-                                        roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
-                                            CoroutineScope(Dispatchers.Main).launch{  //Usar com CoroutineScope(Dispatchers.Main).launch quando nao estiver dentro de uma coroutine como LaunchedEffect. caso contrário, basta usar delay()
-                                                delay(2000)
-                                                showDialogWaitingPlayAgainAcceptance = false
-                                                navController.popBackStack()
-                                            }
+                            DefaultButton("Sair", false) {
+                                if (bothPlayersAreOnline) {
+                                    roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
+                                        CoroutineScope(Dispatchers.Main).launch{  //Usar com CoroutineScope(Dispatchers.Main).launch quando nao estiver dentro de uma coroutine como LaunchedEffect. caso contrário, basta usar delay()
+                                            delay(2000)
+                                            showDialogWaitingPlayAgainAcceptance = false
+                                            navController.popBackStack()
                                         }
-                                    } else {
-                                        roomViewModel.deleteRoom(
-                                            onSuccess = {
-                                                showDialogWaitingPlayAgainAcceptance = false
-                                                navController.popBackStack()
-                                            },
-                                            onFailure = { error ->
-                                                Log.e(
-                                                    "Firebase",
-                                                    "Erro ao deletar a sala: ${error.message}"
-                                                )
-                                                showDialogWaitingPlayAgainAcceptance = false
-                                                navController.popBackStack()
-                                            }
-                                        )
                                     }
-                                },
-                                enabled = bothPlayersAreOnline
-                            ) {
-                                Text("Sair")
-
+                                } else {
+                                    roomViewModel.deleteRoom(
+                                        onSuccess = {
+                                            showDialogWaitingPlayAgainAcceptance = false
+                                            navController.popBackStack()
+                                        },
+                                        onFailure = { error ->
+                                            Log.e(
+                                                "Firebase",
+                                                "Erro ao deletar a sala: ${error.message}"
+                                            )
+                                            showDialogWaitingPlayAgainAcceptance = false
+                                            navController.popBackStack()
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -735,34 +661,23 @@ fun RoomContent(
 
                     DefaultDialog(
                         showDialog = showDialogOpponentHasLeft,
-                        "Jogo abandonado!",
-                        backgroundTransparent = false
+                        "Jogo abandonado!"
                     )
                     {
                         val whoHasLeft = if (!room.owner.online) room.owner.nickName else room.guest.nickName
 
-                        Column {
-                            Text(
-                                text = "$whoHasLeft saiu do jogo!",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            Text(
-                                text = "Clique em sair para voltar para a tela inicial",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-
-                        }
+                        CenteredBodyText("$whoHasLeft saiu do jogo!", color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        CenteredBodyText(text = "Clique em sair para voltar para a tela inicial", color = Color.Black)
 
                         Spacer(modifier = Modifier.height(16.dp))
 
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Button(onClick = {
+                            DefaultButton("Sair", false) {
                                 roomViewModel.deleteRoom(
                                     onSuccess = {
                                         showDialogOpponentHasLeft = false
@@ -778,98 +693,73 @@ fun RoomContent(
                                     }
                                 )
                             }
-                            ) {
-                                Text("Sair")
-                            }
                         }
-
                     }
 
                     //+++++++++++++++++++++++++Dialog Fim do Jogo+++++++++++++++++++++++++++++++++++++++
                     DefaultDialog(
                         showDialog = showDialogGameOver,
-                        "Jogo Finalizado!",
-                        backgroundTransparent = false
+                        "Jogo Finalizado!"
                     )
                     {
                         var showProgressLeaving by remember { mutableStateOf(false) }
-                        val winner = when {
+                        val whoWon = when {
                             room.owner.score > room.guest.score -> if (roomViewModel.loggedUserId == room.owner.id) "Você venceu!" else "${room.owner.nickName} venceu!"
                             room.guest.score > room.owner.score -> if (roomViewModel.loggedUserId == room.guest.id) "Você venceu!" else "${room.guest.nickName} venceu!"
                             else -> "Jogo empatado!"
                         }
-                        Column {
-                            Text(
-                                text = "O jogo terminou! $winner",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                        CenteredBodyText(whoWon, color = Color.Black)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        ScoreBoard(isLoggedUserOwner, room.owner.nickName, room.owner.score, room.guest.nickName, room.guest.score)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        if(showProgressLeaving){
+                            LoadingIndicator("Voltando para a tela inicial...")
+                        }else{
+                            CenteredBodyText(
+                                text = if (bothPlayersAreOnline) "Deseja jogar novamente?" else "Não é possível jogar novamente, pois seu adversário saiu do jogo!",
+                                color = if (bothPlayersAreOnline) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
                             )
-                            Text(
-                                text = "${if(isLoggedUserOwner) "Você" else room.owner.nickName} : ${room.owner.score} pts X ${if(isLoggedUserGuest) "Você" else room.guest.nickName})}: ${room.guest.score} pts",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
-
-                            if(showProgressLeaving){
-                                LoadingIndicator("Voltando para a tela inicial...")
-                            }else{
-                                Text(
-                                    text = if (bothPlayersAreOnline) "Deseja jogar novamente?" else "Não é possível jogar novamente, pois seu adversário saiu do jogo!",
-                                    color = if (bothPlayersAreOnline) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
-                                )
-                            }
-
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Button(
-                                onClick = {
-                                    val status = if(isLoggedUserOwner) RoomStatusesEnum.OWNER_WANTS_PLAY_AGAIN.name else RoomStatusesEnum.GUEST_WANTS_PLAY_AGAIN.name
-                                    roomViewModel.setStatus(status){
-                                        showDialogGameOver = false
-                                    }
-                                },
-                                enabled = bothPlayersAreOnline
-                            ) {
-                                Text("Nova Partida")
+                            DefaultButton("Nova Partida", false) {
+                                val status = if(isLoggedUserOwner) RoomStatusesEnum.OWNER_WANTS_PLAY_AGAIN.name else RoomStatusesEnum.GUEST_WANTS_PLAY_AGAIN.name
+                                roomViewModel.setStatus(status){
+                                    showDialogGameOver = false
+                                }
                             }
 
-                            Button(
-                                onClick = {
-                                    if (bothPlayersAreOnline) {
-                                        showProgressLeaving = true
-                                        roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
-                                                CoroutineScope(Dispatchers.Main).launch{  //Usar com CoroutineScope(Dispatchers.Main).launch quando nao estiver dentro de uma coroutine como LaunchedEffect. caso contrário, basta usar delay()
-                                                delay(2000)
-                                                showDialogGameOver = false
-                                                navController.popBackStack()
-                                            }
-                                            }
-                                    } else {
-                                                roomViewModel.deleteRoom(
-                                                    onSuccess = {
-                                                        showDialogGameOver = false
-                                                        navController.popBackStack()
-                                                    },
-                                                    onFailure = { error ->
-                                                        Log.e(
-                                                            "Firebase",
-                                                            "Erro ao deletar a sala: ${error.message}"
-                                                        )
-                                                        showDialogGameOver = false
-                                                        navController.popBackStack()
-                                                    }
-                                                )
+                            DefaultButton("Sair", false) {
+                                if (bothPlayersAreOnline) {
+                                    showProgressLeaving = true
+                                    roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
+                                        CoroutineScope(Dispatchers.Main).launch{  //Usar com CoroutineScope(Dispatchers.Main).launch quando nao estiver dentro de uma coroutine como LaunchedEffect. caso contrário, basta usar delay()
+                                            delay(2000)
+                                            showDialogGameOver = false
+                                            navController.popBackStack()
+                                        }
                                     }
+                                } else {
+                                    roomViewModel.deleteRoom(
+                                        onSuccess = {
+                                            showDialogGameOver = false
+                                            navController.popBackStack()
+                                        },
+                                        onFailure = { error ->
+                                            Log.e(
+                                                "Firebase",
+                                                "Erro ao deletar a sala: ${error.message}"
+                                            )
+                                            showDialogGameOver = false
+                                            navController.popBackStack()
+                                        }
+                                    )
                                 }
-                            ) {
-                                Text("Sair")
-
                             }
                         }
 
@@ -879,44 +769,45 @@ fun RoomContent(
 
                     DefaultDialog(
                         showDialog = showDialogConfirmExit,
-                        "Confirmação!",
-                        backgroundTransparent = false
+                        "Confirmação!"
                     )
                     {
 
-                        Column {
-                            Text(
-                                text = "Tem certeza que deseja sair do jogo?",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-
-                        }
+                        CenteredBodyText("Tem certeza que deseja sair do jogo?", color = Color.Black)
 
                         Spacer(modifier = Modifier.height(16.dp))
 
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Button(onClick = {
+                            DefaultButton("Cancelar", false) {
                                 showDialogConfirmExit = false
                             }
-                            ) {
-                                Text("Cancelar")
-                            }
 
-                            Button(onClick = {
-                                roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false){
-                                    navController.popBackStack()
-                                    showDialogConfirmExit = false
+                            DefaultButton("Sim", false){
+                                if(bothPlayersAreOnline) {
+                                    roomViewModel.setPlayerOnlineStatus(isLoggedUserOwner, false) {
+                                        navController.popBackStack()
+                                        showDialogConfirmExit = false
+                                    }
+                                }else{
+                                    roomViewModel.deleteRoom(
+                                        onSuccess = {
+                                            showDialogConfirmExit = false
+                                            navController.popBackStack()
+                                        },
+                                        onFailure = { error ->
+                                            Log.e(
+                                                "Firebase",
+                                                "Erro ao deletar a sala: ${error.message}"
+                                            )
+                                            showDialogConfirmExit = false
+                                            navController.popBackStack()
+                                        }
+                                    )
                                 }
-
-
-                            }
-                            ) {
-                                Text("Sim")
                             }
                         }
 
@@ -929,20 +820,22 @@ fun RoomContent(
                         }
 
                         RoomStatusesEnum.PLAYING.name -> {
-                            showDialogWaitingPlayAgainAcceptance = false //TODO procurar melhor lugar para alterar essas variaveis
+                            showDialogWaitingPlayAgainAcceptance = false
                             showDialogPlayAgain = false
-                            StartGame(
+                            ShowGame(
                                 safeRoom,
                                 roomViewModel,
                                 isLoggedUserOwner,
-                                loggedUserName,
                                 opponentName,
                                 text = text,
+                                bothPlayersAreOnline,
                                 onTextChange = { text = it }
                             )
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(50.dp))
             }
         }
     }
@@ -950,68 +843,30 @@ fun RoomContent(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StartGame(
+fun ShowGame(
     safeRoom: Room,
     roomViewModel: RoomViewModel,
     isLoggedUserOwner: Boolean,
-    loggedUserName: String,
     opponentName: String,
     text: String,
+    bothPlayersAreOnline: Boolean,
     onTextChange: (String) -> Unit
 )
 {
-
-    var showClues by remember { mutableStateOf(false) }
-
-
-
-    LaunchedEffect(safeRoom.cluesShown) {
-        if (safeRoom.cluesShown > -1) {
-            showClues = true
-        }
-    }
-
-    Text(
-        "Rodada: ${safeRoom.round}",
-        style = MaterialTheme.typography.bodyLarge
-    )
-
-    Text("Pontuações:", style = MaterialTheme.typography.titleMedium)
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                if(isLoggedUserOwner) "Você" else safeRoom.owner.nickName,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                "${safeRoom.owner.score} pts",
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                if(!isLoggedUserOwner) "Você" else safeRoom.guest.nickName,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                "${safeRoom.guest.score} pts",
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
+    Column {
+        CenteredTitleText("Rodada: ${safeRoom.round}", color = Color.Black)
+        ScoreBoard(
+            isLoggedUserOwner,
+            safeRoom.owner.nickName,
+            safeRoom.owner.score,
+            safeRoom.guest.nickName,
+            safeRoom.guest.score)
+        Spacer(modifier = Modifier.padding(50.dp))
+        Clues(safeRoom, roomViewModel, opponentName,text,bothPlayersAreOnline,onTextChange)
     }
 
 
 
-    Spacer(modifier = Modifier.padding(8.dp))
-
-    if (showClues) {
-        Clues(safeRoom, roomViewModel, loggedUserName,text,onTextChange) { showClues = false }
-    } else {
-        LoadingIndicator("Aguardando $opponentName escolhe a próxima palavra...")
-    }
 }
 
 @Composable
@@ -1020,87 +875,218 @@ fun Clues(
     roomViewModel: RoomViewModel,
     opponentName: String,
     text: String,
-    onTextChange: (String) -> Unit,
-    updateShowClues: () -> Unit
+    bothPlayersAreOnline: Boolean,
+    onTextChange: (String) -> Unit
 )
 {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(8.dp)),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+    Column(
+        modifier = Modifier
+            .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(8.dp))
+            .padding(4.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ){
 
-            Text(
-                text = "${PointsEnum.HIGHER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[0]}",
-                modifier = Modifier.align(Alignment.Start)
-            )
-
-
-            if (room.cluesShown > 0) {
-                Text(
-                    text = "${PointsEnum.MEDIAN.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[1]}",
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            }
+            if(room.cluesShown > -1){
+                PointsAndClue(
+                    PointsEnum.HIGHER.points.toString(),
+                    room.drawnWords[room.chosenWordIndex].clues[0],
+                    Arrangement.Start)
 
 
-            if (room.cluesShown > 1) {
-                Text(
-                    text = "${PointsEnum.LOWER.points} pts - ${room.drawnWords[room.chosenWordIndex].clues[2]}",
-                    modifier = Modifier.align(Alignment.End)
-                )
-            }
+                if (room.cluesShown > 0) {
+                    PointsAndClue(PointsEnum.MEDIAN.points.toString(),
+                        room.drawnWords[room.chosenWordIndex].clues[1],
+                        Arrangement.Center)
 
-            if (
-                (roomViewModel.loggedUserId == room.owner.id && room.ownerTurn) ||
-                (roomViewModel.loggedUserId == room.guest.id && !room.ownerTurn)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                }
+
+
+                if (room.cluesShown > 1) {
+                    PointsAndClue(PointsEnum.LOWER.points.toString(),
+                        room.drawnWords[room.chosenWordIndex].clues[2],
+                        Arrangement.End)
+
+                }
+
+                if (
+                    (roomViewModel.loggedUserId == room.owner.id && room.ownerTurn) ||
+                    (roomViewModel.loggedUserId == room.guest.id && !room.ownerTurn)
                 ) {
-                    CountdownTimer(
-                        Room.ANSWER_TIMEOUT_SECONDS,
-                        Color.Red,
-                        fontSize = 12,
-                        extraText = " segundos para responder..."
-                    ) {
-                        roomViewModel.verifyTimeOut(room) {}
+                    if(bothPlayersAreOnline){
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CountdownTimer(
+                                Room.ANSWER_TIMEOUT_SECONDS,
+                                Color.Red,
+                                fontSize = 12,
+                                extraText = " segundos para você responder..."
+                            ) {
+                                roomViewModel.verifyTimeOut(room) {}
+                            }
+                        }
                     }
-                }
 
-                TextField(
-                    value = text,
-                    onValueChange = onTextChange,
-                    label = { Text("Digite algo") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    TextField(
+                        value = text,
+                        onValueChange = onTextChange,
+                        label = { Text("Digite algo") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                Button(
-                    onClick = {
-                        updateShowClues()
+                    DefaultButton(
+                        text = "Enviar",
+                        fillMaxWidth = true
+                    ){
                         roomViewModel.setStatus(RoomStatusesEnum.VERIFYING_ANSWER.name){}
-                              },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Enviar")
-                }
+                    }
 
-            }else{
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CountdownTimer(
-                        Room.ANSWER_TIMEOUT_SECONDS,
-                        Color.Red,
-                        fontSize = 12,
-                        extraText = " segundos para $opponentName responder..."
-                    ) {}
+                }else{
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CountdownTimer(
+                            Room.ANSWER_TIMEOUT_SECONDS,
+                            Color.Red,
+                            fontSize = 12,
+                            extraText = " segundos para $opponentName responder..."
+                        ) {}
+                    }
                 }
             }
 
         }
     }
+
+@Composable
+fun PointsAndClue(points: String, clue: String, arrangement: Arrangement.Horizontal){
+    Row(
+        horizontalArrangement = arrangement,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = points,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .background(Color(red = 80, green = 90, blue = 248, alpha = 255))
+                .widthIn(min = 50.dp)
+                .border(2.dp, Color(45, 135, 241, 255))
+                .padding(12.dp)
+        )
+
+        Text(
+            text = clue,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            modifier = Modifier
+                .background(Color(red = 91, green = 31, blue = 152))
+                .border(1.dp, Color(45, 135, 241, 255))
+                .padding(12.dp)
+        )
+    }
+}
+
+
+@Composable
+fun WordCard(wordName: String, wordIsUsed: Boolean, showAlwaysDefaultBgColor: Boolean = false, callback: () -> Unit){
+    Card(
+        elevation = CardDefaults.cardElevation(8.dp),
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier
+            .width(150.dp)
+            .height(100.dp)
+            .background(Color.Transparent)
+            .padding(2.dp)
+            .shadow(8.dp, RoundedCornerShape(8.dp))
+            .clickable {
+                if (!wordIsUsed) {
+                    callback()
+                }
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(if (!wordIsUsed || showAlwaysDefaultBgColor) WordCardBackground else WordUsedCardBackground),
+            contentAlignment = Alignment.Center
+        ) {
+            if (wordIsUsed) {
+                Text(
+                    text = wordName,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+fun ScoreBoard(
+    isLoggedUserOwner: Boolean,
+    ownerNickName: String,
+    ownerScore: Int,
+    guestNickName: String,
+    guestScore: Int){
+    Card(
+        elevation = CardDefaults.cardElevation(8.dp),
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+    )
+    {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            ScoreBoardFirstColor,
+                            ScoreBoardSecondColor
+                        )
+                    )
+                )
+                .fillMaxWidth()
+                .height(100.dp)
+                .padding(6.dp)// espaço interno dentro do Card
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    if(isLoggedUserOwner) "Você" else ownerNickName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    "$ownerScore pts",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFD4AF37)
+                )
+            }
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    if(!isLoggedUserOwner) "Você" else guestNickName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    "$guestScore pts",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFD4AF37)
+                )
+            }
+        }
+    }
+}

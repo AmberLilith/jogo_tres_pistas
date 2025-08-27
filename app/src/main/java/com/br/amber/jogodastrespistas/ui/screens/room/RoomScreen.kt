@@ -1,11 +1,5 @@
 package com.br.amber.jogodastrespistas.ui.screens.room
 
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -16,8 +10,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.br.amber.jogodastrespistas.data.RoomRepository
+import com.br.amber.jogodastrespistas.ui.components.DefaultScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoomScreen(
     navController: NavHostController,
@@ -39,22 +33,5 @@ fun RoomScreen(
 
     val room by roomViewModel.roomState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-                title = {
-                    Text(
-                        text = "JOGO DAS 3 PISTAS",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-            )
-        }
-    ) { innerPadding ->
-        RoomContent(room, innerPadding, navController, roomViewModel)
-    }
+    DefaultScreen { RoomContent(room, navController, roomViewModel) }
 }
